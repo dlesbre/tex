@@ -1,0 +1,90 @@
+#!/usr/bin/bash
+# bash script to clean up after texmaker
+# see help for details
+# author: Dorian Lesbre
+
+ALL_PATHS=.
+VERSION="1.3"
+NAME="\033[93mtexcleanup:\033[38m"
+
+# while getopts ":vh" opt; do
+#   case $opt in
+#     v)
+#       echo -e "$NAME version $VERSION"
+#       ;;
+#     h)
+#       echo ...
+#       ;;
+#     \?)
+#       echo -e "$NAME Invalid option: -$OPTARG"
+#       ;;
+#   esac
+# done
+
+SHOW_HELP=0
+SHOW_VERSION=0
+CHANGE_PATH=0
+
+for arg in $@
+do
+	case $arg in
+		-h | -help | --help)
+			SHOW_HELP=1
+			;;
+		-v | -version | --version)
+			SHOW_VERSION=1
+			;;
+		-*)
+			echo -e "$NAME unknown option $arg.";
+			echo -e "  usage: texcleanup [path] [-version] [-help]";
+			exit 1
+			;;
+		*)
+			if [ $CHANGE_PATH -eq 1 ]; then
+				ALL_PATHS="$ALL_PATHS $arg"
+			else
+				ALL_PATHS=$arg;
+				CHANGE_PATH=1
+			fi
+			;;
+	esac
+done
+
+if [ $SHOW_HELP -eq 1 ]; then
+	echo -e "$NAME version ($VERSION) help:"
+	echo "  Small utility script for cleaning up after texmaker."
+	echo "  Moves pdf out of ./build and deletes ./build"
+	echo "  Use with texmaker compilation to build directory."
+	echo ""
+	echo "  Call in the directory containing ./build and ./*.tex file"
+	echo "  usage:"
+	echo "    texcleanup [path1=. [path2 ...]] [-help] [-version]"
+	echo ""
+	if [ $CHANGE_PATH -eq 0 ]; then
+		exit 0
+	fi
+else
+	if [ $SHOW_VERSION -eq 1 ]; then
+		echo -e "$NAME version $VERSION"
+		if [ $CHANGE_PATH -eq 0 ]; then
+			exit 0
+		fi
+	fi
+fi
+
+for DIR_PATH in $ALL_PATHS
+do
+	if test -d $DIR_PATH/build; then
+		for file in "$DIR_PATH"/build/*.pdf ;
+		do
+			if test -f "$file"; then
+				echo -e "$NAME Moving $file."
+				mv "$file" "$DIR_PATH/"
+			fi
+		done
+		echo -e "$NAME Deleting $DIR_PATH/build."
+		rm -rf $DIR_PATH/build
+	else
+		echo -e "$NAME No $DIR_PATH/build directory"
+	fi
+done

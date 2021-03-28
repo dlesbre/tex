@@ -1,0 +1,113 @@
+#!/usr/bin/bash
+# bash script to init latex documents
+# see help for details
+# author: Dorian Lesbre
+
+VERSION="1.0"
+NAME="\033[93mnewtex:\033[38m"
+
+TEMPLATES_PATH=~/Templates
+DOCUMENT_TEMPLATE=$TEMPLATES_PATH/tex-document-template.tex
+BEAMER_TEMPLATE=$TEMPLATES_PATH/tex-beamer-template.tex
+
+WRITE_TO="./document.tex"
+
+SHOW_HELP=0
+SHOW_VERSION=0
+CHANGE_PATH=0
+BEAMER=0
+FORCE=0
+
+for arg in $@
+do
+	case $arg in
+		-h | -help | --help)
+			SHOW_HELP=1
+			;;
+		-v | -version | --version)
+			SHOW_VERSION=1
+			;;
+		-b | --beamer)
+			BEAMER=1
+			;;
+		-f | --force)
+			FORCE=1
+			;;
+		-*)
+			echo -e "$NAME unknown option $arg.";
+			echo -e "  usage: newtex [-b] [path] [--version] [--help]";
+			exit 1
+			;;
+		*)
+			if [ $CHANGE_PATH -eq 1 ]; then
+				WRITE_TO="$WRITE_TO $arg"
+			else
+				WRITE_TO=$arg;
+				CHANGE_PATH=1
+			fi
+			;;
+	esac
+done
+
+if [ $SHOW_HELP -eq 1 ]; then
+	echo -e "$NAME (version $VERSION) help:"
+	echo "  Small utility script for copying tex templates."
+	echo "  Copies templates from:"
+	echo -e "    - '$DOCUMENT_TEMPLATE' (documents)"
+	echo -e "    - '$BEAMER_TEMPLATE' (beamer presentations)"
+	echo ""
+	echo "  Usage:"
+	echo -e "    \033[93mnewtex \033[33m[path1=./document.tex [path2 ...]]\033[38m"
+	echo ""
+	echo "  Options:"
+	echo -e "    \033[33m-b\033[38m use beamer template and not document one"
+	echo -e "    \033[33m-h\033[38m show this help"
+	echo -e "    \033[33m-v\033[38m show version"
+	echo ""
+	if [ $CHANGE_PATH -eq 0 ]; then
+		exit 0
+	fi
+else
+	if [ $SHOW_VERSION -eq 1 ]; then
+		echo -e "$NAME version $VERSION"
+		if [ $CHANGE_PATH -eq 0 ]; then
+			exit 0
+		fi
+	fi
+fi
+
+TEX_SOURCE_FILE=$DOCUMENT_TEMPLATE
+if [ $BEAMER -eq 1 ]; then
+	TEX_SOURCE_FILE=$BEAMER_TEMPLATE
+fi
+
+for file in $WRITE_TO
+do
+	if [ -d $file ] #is a directory
+	then
+		if [ file == "*/" ]
+		then
+				file="{$file}document.tex"
+		else
+				file="$file/document.tex"
+		fi
+	fi
+	if ! [ file == "*.tex" ]; then
+		file="$file.tex"
+	fi
+	if [ -f $file ]
+	then
+		if [ $FORCE -eq 0 ]
+		then
+			echo -e "$NAME skipping '$file' as it aldready exists."
+		else
+			echo -e "$NAME overwriting '$file'."
+			cp "$TEX_SOURCE_FILE" "$file"
+			texmaker "$file" > /dev/null 2>&1 &
+		fi
+	else
+			echo -e "$NAME creating '$file'."
+			cp "$TEX_SOURCE_FILE" "$file"
+			texmaker "$file" > /dev/null 2>&1 &
+	fi
+done;

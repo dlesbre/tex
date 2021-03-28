@@ -23,3 +23,7 @@ For general use on Linux, place the `.sty` files in `~/texmf/tex/latex/` or any 
 **Templates:** simple prefilled document to avoid retyping common things
 - [templates/document.tex](./template/document.tex)
 - [templates/beamer.tex](./template/document.tex)
+
+**Scripts:**
+- [scripts/newtex](./scripts/newtex): bash script to generate a new tex file from template and open texmaker
+- [scripts/texcleanup](./scripts/texcleanup): bash script to remove tex build files in a build directory
