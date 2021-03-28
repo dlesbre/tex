@@ -19,7 +19,7 @@ class TexmgrConstants:
 	Constants used by Texmgr
 	"""
 	NAME = "texmgr"
-	VERSION = "0.0.1"
+	VERSION = "0.1.0"
 
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
 	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
