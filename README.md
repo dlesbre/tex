@@ -10,6 +10,8 @@ the same folder as your `.tex` document
 
 For general use on Linux, place the `.sty` files in `~/texmf/tex/latex/` or any subdirectory thereof.
 
+To install the script, add an `alias texmgr='path/to/texmgr'`.
+
 ## Contents
 
 **Color theme:**
@@ -25,5 +27,34 @@ For general use on Linux, place the `.sty` files in `~/texmf/tex/latex/` or any 
 - [templates/beamer.tex](./template/document.tex)
 
 **Scripts:**
-- [scripts/newtex](./scripts/newtex): bash script to generate a new tex file from template and open texmaker
-- [scripts/texcleanup](./scripts/texcleanup): bash script to remove tex build files in a build directory
+- [scripts/texmgr.py](scripts/texmgr.py): python script to compile/initialize and clean texfiles.
+- [scripts/texmgr](scripts/texmgr): executable that calls the `texmgr.py` script's `main`
+
+
+		Usage: texmgr [--flags] [file list]
+
+		Compiles all files in the file list (defaut, all *.tex files
+		in current working directory). Compile three times and clean
+		build files afterward
+
+		Flags:
+		  --no-clean -n     don't remove build files after compiling
+		  --rounds -r <int> number of compile rounds, default = 3
+
+		  --init -i         create files in file list rather than compile them
+		  --init-beamer -b  same as --init, but uses the beamer template to create files
+		  --clean -c        only clean files (removes build files)
+		                    Files removed match a .tex file in the list
+		                    and have the following extensions:
+		                      aux, log, nav, out, synctez.gz, snm, vrb, toc, bbl
+
+		  --verbose -v      print the commands called
+		  --dry-run -d      print the commands but don't run them
+		  --version         show version number
+		  --help -h         show this help
+
+
+
+**Old scripts:**
+- [scripts/old/newtex](./scripts/old/newtex): bash script to generate a new tex file from template and open texmaker
+- [scripts/old/texcleanup](./scripts/old/texcleanup): bash script to remove tex build files in a build directory
