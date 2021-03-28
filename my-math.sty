@@ -1,0 +1,145 @@
+%%
+%% Custom math shortcut package
+%% Rewrite of custom-math.sty
+%% Author: Dorian Lesbre
+%%
+\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+\ProvidesPackage{my-math} [2020/01/22 v1.1 a lot of math commands]
+
+\RequirePackage{my-preamble}
+
+\RequirePackage{etoolbox}
+
+\newtoggle{english}
+
+\DeclareOption{english}{\toggletrue{english}}
+
+\ProcessOptions\relax
+
+% ==========================
+% Math abbrieviations
+% ==========================
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\U}{\mathbb{U}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\F}{\mathbb{F}}
+\renewcommand{\S}{\mathbb{S}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Esp}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+
+\newcommand{\di}{\mathrm{d}}
+\newcommand{\re}{\mathrm{Re}}
+\newcommand{\im}{\mathrm{Im}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\gl}{\mathrm{Gl}}
+\newcommand{\rg}{\mathrm{rg}}
+\newcommand{\tr}{\mathrm{Tr}}
+\newcommand{\DL}{\mathrm{DL}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\com}{\mathrm{Com}}
+\renewcommand{\ker}{\mathrm{Ker}}
+\newcommand{\vect}{\mathrm{Vect}}
+\renewcommand{\th}{\mathrm{Th}}
+\newcommand{\card}{\mathrm{Card}}
+\newcommand{\ind}{1\!\!1} % indicatrice
+
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\orth}{\mathcal{O}}
+\newcommand{\sorth}{\mathcal{SO}}
+\newcommand{\Div}{\mathcal{D}}
+
+\newcommand{\Lin}{\mathscr{L}}
+\newcommand{\Cont}[1][]{\mathscr{C}^{#1}}
+\newcommand{\B}{\mathscr{B}}
+\newcommand{\E}{\mathscr{E}}
+
+\newcommand{\et}{\text{ et }}
+\newcommand{\ou}{\text{ ou }}
+\newcommand{\si}{\text{ si }}
+
+\newcommand{\bq}{\bullet \quad}
+
+\newcommand{\transp}{{}^\mathrm{t}\!} % matrix transposition
+
+\newcommand{\set}[1]{\left\lbrace{} #1 \right\rbrace}
+\newcommand{\abs}[1]{\left\lvert{} #1 \right\rvert}
+\newcommand{\normv}[1]{\left\Vert{} #1 \right\Vert}
+\newcommand{\norm}[1]{\left\Vert{} \overrightarrow{#1} \right\Vert}
+\newcommand{\floor}[1]{\left\lfloor{} #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil{} #1 \right\rceil}
+\newcommand{\scalar}[2]{\left\langle#1,\,#2\right\rangle}
+\newcommand{\intset}[2]{\left\llbracket#1, \: #2 \right\rrbracket}
+
+\newcommand{\limit}[2]{\lim\limits_{#1\: \to\: #2}}
+\newcommand{\tendsto}[2]{\xrightarrow[\: #1\: \to\:#2 \:]{}}
+\newcommand{\Mat}[2][\mathbb{K}]{\mathcal{M}_{#2}\left(#1\right)}
+\newcommand{\matr}[5]{\left(#1\right)_{\substack{1 \leqslant #2 \leqslant #3 \\ 1 \leqslant #4 \leqslant #5}}}
+
+\newcommand{\conj}[1]{\xrightarrow{\quad {\displaystyle \mathscr{#1}} \quad}}
+\newcommand{\diff}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\pdiff}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\bigdiff}[2]{\cfrac{\mathrm{d} #1}{\mathrm{d} #2}}
+
+\newcommand{\f}[4]{\begin{array}{ccl}
+ #1 \!&\! \rightarrow \!&\! #2 \\
+ #3 \!&\! \mapsto \!&\! #4 \end{array}}
+\newcommand{\nCr}[2]{\left(\begin{array}{c} #1 \\ #2 \end{array} \right)}
+\newcommand{\liste}[3][,\,]{#2 #1 \ldots #1 #3}
+
+% Operators - like \sum
+\DeclareMathOperator*{\bigast}{\text{\Huge{$\ast$}}}
+\DeclareMathOperator*{\simop}{\text{\LARGE{$\sim$}}}
+\DeclareMathOperator*{\smallo}{o}
+\DeclareMathOperator*{\bigO}{\text{\Large{$O$}}}
+\DeclareMathOperator*{\eqas}{=}
+\DeclareMathOperator*{\argmax}{\text{argmax}}
+\DeclareMathOperator*{\argmin}{\text{argmin}}
+
+% ==========================
+% Theorems
+% ==========================
+
+\newtheoremstyle{custom}
+	{} % espace au-dessus
+	{} % espace en-dessous
+	{\normalfont} % police
+	{} % indentation
+	{\bfseries}
+	{} %Ponctuation
+	{ } %après la tête
+	{\thmname{#1}\thmnumber{ #2} : \def\temp{#3}\ifx\temp\empty \else (\thmnote{#3})\fi\newline} %head-spec
+\theoremstyle{custom}
+
+\makeatletter
+	\renewenvironment{proof}[1][\proofname]
+		{\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\emph{#1 :}]\mbox{}}
+		{\popQED\endtrivlist\@endpefalse}
+\makeatother
+
+
+\iftoggle{english}{
+	\newtheorem{proposition}{Proposition}
+	\newtheorem{theoreme}[proposition]{Theorem}
+	\newtheorem{probleme}{Problem}
+	\newtheorem{methode}{Method}
+	\newtheorem{algo}{Algorithm}
+	\newtheorem{defini}{Definition}
+}{
+	\newtheorem{proposition}{Proposition}
+	\newtheorem{theoreme}[proposition]{Théorème}
+	\newtheorem{probleme}{Problème}
+	\newtheorem{methode}{Méthode}
+	\newtheorem{algo}{Algorithme}
+	\newtheorem{defini}{Définition}
+}
+
+\endinput
+
+%% End of file my-math.sty

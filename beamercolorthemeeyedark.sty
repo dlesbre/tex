@@ -1,0 +1,76 @@
+%%
+%% Custom color package for beamer metropolis
+%% Author: Dorian Lesbre
+%%
+\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+\ProvidesPackage{beamercolorthemeyedark} [2020/01/15 v0.1 a dark theme for beamer presentations]
+
+% Dependencies
+\RequirePackage{etoolbox}
+\RequirePackage{xcolor}
+
+% Parameters
+\newtoggle{blue}
+\newtoggle{red}
+\newtoggle{green}
+
+\@ifclassloaded{beamer}{
+	\DeclareOptionBeamer{blue}{\toggletrue{blue}}
+	\DeclareOptionBeamer{red}{\toggletrue{red}}
+	\DeclareOptionBeamer{green}{\toggletrue{green}}
+
+	\ProcessOptionsBeamer
+}{}
+
+% === Color-definitions ===
+
+% blue
+\definecolor{eyeblue_bg}{HTML}{26263c}
+\definecolor{eyeblue_title_bg}{HTML}{4c4c7c}
+\colorlet{eyeblue_blocktitle_bg}{eyeblue_title_bg}
+\colorlet{eyeblue_blockbody_bg}{eyeblue_title_bg!120}
+
+% red
+\definecolor{eyered_bg}{HTML}{3c2626}
+\definecolor{eyered_title_bg}{HTML}{7c4c4c}
+\colorlet{eyered_blocktitle_bg}{eyered_title_bg}
+\colorlet{eyered_blockbody_bg}{eyered_title_bg!120}
+
+%green
+\definecolor{eyegreen_bg}{HTML}{263c26}
+\definecolor{eyegreen_title_bg}{HTML}{4c7c4c}
+\colorlet{eyegreen_blocktitle_bg}{eyegreen_title_bg}
+\colorlet{eyegreen_blockbody_bg}{eyegreen_title_bg!120}
+
+
+% === Color-Scheme ===
+
+\@ifclassloaded{beamer}{
+
+	\setbeamercolor{normal text}{fg=white, bg=black}
+
+	\iftoggle{blue}{
+		\setbeamercolor*{frametitle}{bg=eyeblue_title_bg, fg=white}
+		\setbeamercolor*{background canvas}{bg=eyeblue_bg}
+		\setbeamercolor*{block title}{bg=eyeblue_title_bg}
+		\setbeamercolor*{block body}{bg=eyeblue_title_bg!120}
+
+	}{\iftoggle{red}{
+		\setbeamercolor*{frametitle}{bg=eyered_title_bg, fg=white}
+		\setbeamercolor*{background canvas}{bg=eyered_bg}
+		\setbeamercolor*{block title}{bg=eyered_title_bg}
+		\setbeamercolor*{block body}{bg=eyered_title_bg!120}
+		\setbeamercolor*{alerted text}{fg=eyeblue_title_bg!70}
+
+	}{\iftoggle{green}{
+		\setbeamercolor*{frametitle}{bg=eyegreen_title_bg, fg=white}
+		\setbeamercolor*{background canvas}{bg=eyegreen_bg}
+		\setbeamercolor*{block title}{bg=eyegreen_title_bg}
+		\setbeamercolor*{block body}{bg=eyegreen_title_bg!120}
+
+	}{}}}
+}{}
+
+\endinput
+%%
+%% End of file `beamercolorthemeeyedark.sty'.

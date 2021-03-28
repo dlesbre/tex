@@ -1,0 +1,115 @@
+%%
+%% Custom preamble package
+%% Author: Dorian Lesbre
+%%
+\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+\ProvidesPackage{my-preamble} [2020/01/15 v0.1 a lot of imports]
+
+% ==========================
+% Commonly used packages
+% ==========================
+
+\RequirePackage{listings}
+\RequirePackage{xcolor, colortbl}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[french]{babel}
+\RequirePackage[T1]{fontenc}
+
+\RequirePackage{amsfonts}
+\RequirePackage{amssymb}
+\RequirePackage{amsmath}
+\RequirePackage{amsthm}
+\RequirePackage{mathrsfs}
+\RequirePackage{nicefrac}
+\RequirePackage{stmaryrd}
+\RequirePackage{bm}
+
+\RequirePackage{url}
+\RequirePackage{graphicx}
+\RequirePackage{pgf, tikz}
+\RequirePackage{svg}
+\RequirePackage{multicol}
+
+
+\@ifclassloaded{beamer}{
+	\RequirePackage{hyperref}
+}{
+	\RequirePackage[hidelinks]{hyperref}
+	\hypersetup{linktoc = all, colorlinks = false}
+}
+
+\ProcessOptions\relax
+
+\newcommand{\temp}[1]{{\color{red}#1}}
+
+% expands text into margins
+% usage:
+% 	\Wider{text to expand}
+% 	\Wider[size]{text to expand}
+\newcommand\Wider[2][3em]{
+	\makebox[\linewidth][c]{
+		\begin{minipage}{\dimexpr\textwidth+#1\relax}
+			\raggedright#2
+		\end{minipage}
+	}
+}
+
+% ==========================
+% Color definitions
+% ==========================
+
+% Classic black on white
+\definecolor{classic_text_color}{HTML}{000000} % black
+\definecolor{classic_page_color}{HTML}{FFFFFF} % white
+\definecolor{classic_emph_color}{HTML}{0000FF} % blue
+\definecolor{classic_emph2_color}{HTML}{FF0000} %red
+
+% Inverted white on black
+\definecolor{inverted_text_color}{HTML}{FFFFFF} % white
+\definecolor{inverted_page_color}{HTML}{000000} % black
+\definecolor{inverted_emph_color}{HTML}{FFFF00} % yellow
+\definecolor{inverted_emph2_color}{HTML}{00FFFF} % cyan
+
+% Defaults
+\colorlet{color_fg}{classic_text_color}
+\colorlet{color_bg}{classic_page_color}
+\colorlet{color_emph}{classic_emph_color}
+\colorlet{color_emph2}{classic_emph2_color}
+
+\newcommand{\invertcolors}{
+	\colorlet{color_fg}{inverted_text_color}
+	\colorlet{color_bg}{inverted_page_color}
+	\colorlet{color_emph}{inverted_emph_color}
+	\colorlet{color_emph2}{inverted_emph2_color}
+	\color{color_fg}
+	\pagecolor{color_bg}
+}
+
+\newcommand{\resetcolors}{
+	\colorlet{color_fg}{classic_text_color}
+	\colorlet{color_bg}{classic_page_color}
+	\colorlet{color_emph}{classic_emph_color}
+	\colorlet{color_emph2}{classic_emph2_color}
+	\color{color_fg}
+	\pagecolor{color_bg}
+}
+
+
+% ==========================
+% Size commands
+% ==========================
+
+\newcommand{\sizeppppp}{\Huge}
+\newcommand{\sizepppp}{\huge}
+\newcommand{\sizeppp}{\LARGE}
+\newcommand{\sizepp}{\Large}
+\newcommand{\sizep}{\large}
+\newcommand{\size}{\normalsize}
+\newcommand{\sizem}{\small}
+\newcommand{\sizemm}{\footnotesize}
+\newcommand{\sizemmm}{\scriptsize}
+\newcommand{\sizemmmm}{\tiny}
+
+\endinput
+
+%% End of file my-preamble.sty

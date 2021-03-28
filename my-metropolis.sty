@@ -1,0 +1,28 @@
+%%
+%% Custom beamer metropolis setup package
+%% Author: Dorian Lesbre
+%%
+\NeedsTeXFormat{LaTeX2e}[2005/12/01]
+\ProvidesPackage{my-metropolis} [2020/01/15 v0.1 some config option]
+
+\RequirePackage{my-preamble}
+
+\ProcessOptions\relax
+
+\newcommand{\sectionpages}{
+	\begin{frame}
+		\vfill
+		\centering
+		\begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+			\usebeamerfont{title}\insertsectionhead\par%
+		\end{beamercolorbox}
+		\vfill
+	\end{frame}
+}
+
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{subsection in toc}[ball unnumbered]
+
+\endinput
+
+%% End of file my-metropolis.sty
