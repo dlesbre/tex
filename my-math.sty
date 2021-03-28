@@ -1,10 +1,19 @@
 %%
 %% Custom math shortcut package
-%% Rewrite of custom-math.sty
+%% Content:
+%%  - A lot of useful shortcuts
+%%  - Some new large operators (like sum)
+%%  - Custom Theorems
+%%
+%% Options:
+%%   [english] - set custom theorem names to english (default is french)
+%%
+%% Requires: my-preamble.sty
+%%
 %% Author: Dorian Lesbre
 %%
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
-\ProvidesPackage{my-math} [2020/01/22 v1.1 a lot of math commands]
+\ProvidesPackage{my-math} [2021/03/28 v1.0.0 a lot of math commands]
 
 \RequirePackage{my-preamble}
 
@@ -93,7 +102,10 @@
 \newcommand{\nCr}[2]{\left(\begin{array}{c} #1 \\ #2 \end{array} \right)}
 \newcommand{\liste}[3][,\,]{#2 #1 \ldots #1 #3}
 
-% Operators - like \sum
+% ==========================
+% Operators
+% ==========================
+
 \DeclareMathOperator*{\bigast}{\text{\Huge{$\ast$}}}
 \DeclareMathOperator*{\simop}{\text{\LARGE{$\sim$}}}
 \DeclareMathOperator*{\smallo}{o}
