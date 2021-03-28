@@ -3,12 +3,16 @@ A simple python script to compile, generate and clean LaTeX files
 """
 import argparse
 
+from os import system, listdir
+from os.path import exists, isdir, basename, join, dirname
 from typing import Optional, List
 from sys import argv as sys_argv
+
 
 # ============================
 # Constants
 # ============================
+
 
 class TexmgrConstants:
 	"""
@@ -17,6 +21,8 @@ class TexmgrConstants:
 	NAME = "texmgr"
 	VERSION = "0.0.1"
 
+	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
+	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
 
 	# Files with name <file>.<ext> are remove by clean. With
 	#   <file> such the name of the .tex file (or any tex file)
@@ -41,9 +47,46 @@ class TexmgrConstants:
 		"""Display colored name if USE_COLOR is True"""
 		return cls.color(cls.NAME)
 
+
+# ============================
+# Functions
+# ============================
+
+def run_command(command: str, verbose = False, dry_run = False) -> int:
+	"""Runs a command and returns it's exit status"""
+	if verbose or dry_run:
+		print(command)
+	if dry_run:
+		return 0
+	return system(command)
+
+def clean(file: str, verbose = False, dry_run = False) -> int:
+	"""Cleans all build files related to file"""
+	if file.endswith(".tex"):
+		file = file[:-4]
+	command = 'rm -f "{}.{}"'.format(
+		file, '" "{}.'.format(file).join(TexmgrConstants.CLEAN_EXTENSIONS)
+	)
+	return run_command(command, verbose, dry_run)
+
+def init(file: str, template: str, verbose = False, dry_run = False) -> int:
+	"""Copies template to file"""
+	if isdir(file):
+		file = join(file, basename(template))
+	if exists(file):
+		inp = input("File '{}' aldready exists, overwrite with new LaTeX file (y/n) ? ")
+		if not inp or inp.lower()[0] != "y":
+			return 0
+	if not file.endswith(".tex"):
+		file = file + ".tex"
+	command = 'cp "{}" "{}"'.format(template, file)
+	return run_command(command, verbose, dry_run)
+
+
 # ============================
 # Argument parser and main
 # ============================
+
 
 parser = argparse.ArgumentParser(TexmgrConstants.NAME, add_help=False,
 	usage="{} [--flags] [file list]\n  see --help for details.".format(TexmgrConstants.NAME)
@@ -53,7 +96,9 @@ parser.add_argument("--init", "-i", action="store_true")
 parser.add_argument("--init-beamer", "-b", action="store_true")
 parser.add_argument("--no-clean", "-n", action="store_true")
 parser.add_argument("--clean", "-c", action="store_true")
-parser.add_argument("--version", "-v", action="store_true")
+parser.add_argument("--verbose", "-v", action="store_true")
+parser.add_argument("--dry-run", "-d", action="store_true")
+parser.add_argument("--version", action="store_true")
 parser.add_argument("--help", "-h", action="store_true")
 
 def get_help() -> str:
@@ -77,9 +122,12 @@ def get_help() -> str:
 	  {s}--init-beamer -b{e}  same as --init, but uses the beamer template to create files
 	  {s}--no-clean -n{e}     don't remove build files after compiling
 	  {s}--clean -c{e}        only clean files (removes build files)
-	                          Files removed match a .tex file in the list
-	                          and have the following extensions:
-	                          {ext}
+	  {s}{e}                  Files removed match a .tex file in the list
+	  {s}{e}                  and have the following extensions:
+	  {s}{e}                    {ext}
+
+	  {s}--verbose -v{e}      print the commands called
+	  {s}--dry-run -d{e}      print the commands but don't run them
 	  {s}--version{e}         show version number
 	  {s}--help -h{e}         show this help
 	""".replace("\n\t", "\n").format(
@@ -110,5 +158,44 @@ def main(argv: Optional[List[str]] = None):
 	if args.help:
 		print(get_help())
 		exit(0)
+
+	file_list = args.file[0]
+
+	## initizations
+	if args.init:
+		if not file_list:
+			file_list = ["."]
+		for file in file_list:
+			code = init(file, TexmgrConstants.TEMPLATE_DOCUMENT, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error when creating file '{}'".format(file))
+				exit(code)
+		exit(0)
+	if args.init_beamer:
+		if not file_list:
+			file_list = ["."]
+		for file in file_list:
+			code = init(file, TexmgrConstants.TEMPLATE_BEAMER, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error when creating file '{}'".format(file))
+				exit(code)
+		exit(0)
+
+
+	if not file_list:
+		## Generate file list based on all tex files in CWD
+		file_list = [file for file in listdir() if file.endswith(".tex")]
+
+	if args.clean:
+		for file in file_list:
+			code = clean(file, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error removing build files for '{}'".format(file))
+				exit(code)
+		exit(0)
+
+
+
+
 	print(args.file)
 	print("hello world!")
