@@ -28,8 +28,10 @@ class TexmgrConstants:
 	#   <file> such the name of the .tex file (or any tex file)
 	#   <ext> an extension from this list
 	CLEAN_EXTENSIONS = [
-		"log", "nav", "out", "synctez.gz", "snm", "vrb", "toc", "bbl"
+		"aux", "log", "nav", "out", "synctez.gz", "snm", "vrb", "toc", "bbl"
 	]
+
+	TEX_COMMAND = 'texfot pdflatex -file-line-error "{file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
 
 	USE_COLOR = True # use ansi in output
 	COLOR_START = "\033[33;1m" # bold orange text
@@ -82,6 +84,19 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> int:
 	command = 'cp "{}" "{}"'.format(template, file)
 	return run_command(command, verbose, dry_run)
 
+def compile(file: str, rounds: int, verbose = False, dry_run = False) -> int:
+	"""compiles the given file"""
+	command = TexmgrConstants.TEX_COMMAND.format(file = file)
+	color_s = TexmgrConstants.COLOR_START if TexmgrConstants.USE_COLOR else ""
+	color_e = TexmgrConstants.COLOR_END if TexmgrConstants.USE_COLOR else ""
+	for ii in range(rounds):
+		print("{}================== {}: compiling '{}' (round {} of {}) =================={}".format(
+			color_s, TexmgrConstants.NAME, file, ii+1, rounds, color_e
+		))
+		code = run_command(command, verbose, dry_run)
+		if code != 0:
+			return code
+	return 0
 
 # ============================
 # Argument parser and main
@@ -94,6 +109,7 @@ parser = argparse.ArgumentParser(TexmgrConstants.NAME, add_help=False,
 parser.add_argument("file", nargs="*", action="append")
 parser.add_argument("--init", "-i", action="store_true")
 parser.add_argument("--init-beamer", "-b", action="store_true")
+parser.add_argument("--rounds", "-r", type=int, default=3)
 parser.add_argument("--no-clean", "-n", action="store_true")
 parser.add_argument("--clean", "-c", action="store_true")
 parser.add_argument("--verbose", "-v", action="store_true")
@@ -118,9 +134,11 @@ def get_help() -> str:
 	build files afterward
 
 	Flags:
+	  {s}--no-clean -n{e}     don't remove build files after compiling
+	  {s}--rounds -r{e} <int> number of compile rounds, default = 3
+
 	  {s}--init -i{e}         create files in file list rather than compile them
 	  {s}--init-beamer -b{e}  same as --init, but uses the beamer template to create files
-	  {s}--no-clean -n{e}     don't remove build files after compiling
 	  {s}--clean -c{e}        only clean files (removes build files)
 	  {s}{e}                  Files removed match a .tex file in the list
 	  {s}{e}                  and have the following extensions:
@@ -194,8 +212,13 @@ def main(argv: Optional[List[str]] = None):
 				exit(code)
 		exit(0)
 
-
-
-
-	print(args.file)
-	print("hello world!")
+	for file in file_list:
+		code = compile(file, args.rounds, args.verbose, args.dry_run)
+		if code != 0:
+			print("Error when compiling '{}'".format(file))
+			exit(code)
+		if not args.no_clean:
+			code = clean(file, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error cleaning build files for '{}'".format(file))
+				exit(code)
