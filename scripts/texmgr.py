@@ -31,7 +31,10 @@ class TexmgrConstants:
 		"aux", "log", "nav", "out", "synctez.gz", "snm", "vrb", "toc", "bbl"
 	]
 
-	TEX_COMMAND = 'texfot pdflatex -file-line-error "{file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
+	TEX_COMMAND = (
+		'texfot pdflatex -file-line-error  -interaction=nonstopmode --enable-write18 '
+		'"{file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
+	)
 
 	USE_COLOR = True # use ansi in output
 	COLOR_START = "\033[33;1m" # bold orange text
