@@ -15,7 +15,7 @@ To install the script, add an `alias texmgr='path/to/texmgr'`.
 ## Contents
 
 **Color theme:**
-- [styles/beamercolorthemeeyedark.sty](./styles/beamercolorthemeeyedark.sty): The eyedark color theme for beamer metropolis (dark blue, dark red or dark green)
+- [styles/beamercolorthemeeyedark.sty](./styles/beamercolorthemeeyedark.sty): The eyedark color theme for beamer metropolis (dark blue, dark red or dark green). See [previews](./previews) for sample pdf ouputs.
 
 **Style files:**
 - [styles/my-preamble.sty](./styles/my-preamble.sty): common imports and some useful functions
