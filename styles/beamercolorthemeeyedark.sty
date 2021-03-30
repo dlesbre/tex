@@ -45,6 +45,7 @@
 \colorlet{eyegreen_blocktitle_bg}{eyegreen_title_bg}
 \colorlet{eyegreen_blockbody_bg}{eyegreen_title_bg!120}
 
+\definecolor{eyeexblue}{HTML}{1414B0}
 
 % === Color-Scheme ===
 
@@ -63,13 +64,14 @@
 		\setbeamercolor*{background canvas}{bg=eyered_bg}
 		\setbeamercolor*{block title}{bg=eyered_title_bg}
 		\setbeamercolor*{block body}{bg=eyered_title_bg!120}
-		\setbeamercolor*{alerted text}{fg=eyeblue_title_bg!70}
+		\setbeamercolor*{alerted text}{fg=eyeblue_title_bg!60}
 
 	}{\iftoggle{green}{
 		\setbeamercolor*{frametitle}{bg=eyegreen_title_bg, fg=white}
 		\setbeamercolor*{background canvas}{bg=eyegreen_bg}
 		\setbeamercolor*{block title}{bg=eyegreen_title_bg}
 		\setbeamercolor*{block body}{bg=eyegreen_title_bg!120}
+		\setbeamercolor*{example text}{fg=eyeexblue}
 
 	}{}}}
 }{}
