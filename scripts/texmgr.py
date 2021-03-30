@@ -21,8 +21,12 @@ class TexmgrConstants:
 	NAME = "texmgr"
 	VERSION = "0.1.0"
 
+	# Path to templates copied on init
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
 	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
+
+	OPEN_EDITOR_ON_INIT = True
+	OPEN_EDITOR_COMMAND = 'codium {file_parent}'
 
 	# Files with name <file>.<ext> are remove by clean. With
 	#   <file> such the name of the .tex file (or any tex file)
@@ -52,10 +56,24 @@ class TexmgrConstants:
 		"""Display colored name if USE_COLOR is True"""
 		return cls.color(cls.NAME)
 
+	@classmethod
+	def command_format(cls, command: str, file: str) -> str:
+		"""Formats a command: replaces
+		- {file} with given file
+		- {file_parent} with file basedir"""
+		parent = dirname(file)
+		if parent == "":
+			parent = "."
+		return command.format(
+			file = file,
+			file_parent = parent,
+		)
+
 
 # ============================
 # Functions
 # ============================
+
 
 def run_command(command: str, verbose = False, dry_run = False) -> int:
 	"""Runs a command and returns it's exit status"""
@@ -79,7 +97,9 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> int:
 	if isdir(file):
 		file = join(file, basename(template))
 	if exists(file):
-		inp = input("File '{}' aldready exists, overwrite with new LaTeX file (y/n) ? ")
+		inp = input(
+			"File '{}' aldready exists, overwrite with new LaTeX file (y/n) ? ".format(file)
+		)
 		if not inp or inp.lower()[0] != "y":
 			return 0
 	if not file.endswith(".tex"):
@@ -87,15 +107,33 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> int:
 	command = 'cp "{}" "{}"'.format(template, file)
 	return run_command(command, verbose, dry_run)
 
+def init_wrapper(file_list: str, template: str, verbose = False, dry_run = False) -> int:
+	"""Initializes all files and checks if editor openning is needed"""
+	if not file_list:
+		file_list = ["."]
+	for file in file_list:
+		code = init(file, template, verbose, dry_run)
+		if code != 0:
+			print("Error when creating file '{}'".format(file))
+			exit(code)
+		if TexmgrConstants.OPEN_EDITOR_ON_INIT:
+			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, file)
+			code = run_command(command, verbose, dry_run)
+			if code != 0:
+				print("Error when opening editor for '{}'".format(file))
+				exit(code)
+	exit(0)
+
 def compile(file: str, rounds: int, verbose = False, dry_run = False) -> int:
 	"""compiles the given file"""
-	command = TexmgrConstants.TEX_COMMAND.format(file = file)
+	command = TexmgrConstants.command_format(TexmgrConstants.TEX_COMMAND, file)
 	color_s = TexmgrConstants.COLOR_START if TexmgrConstants.USE_COLOR else ""
 	color_e = TexmgrConstants.COLOR_END if TexmgrConstants.USE_COLOR else ""
 	for ii in range(rounds):
-		print("{}================== {}: compiling '{}' (round {} of {}) =================={}".format(
-			color_s, TexmgrConstants.NAME, file, ii+1, rounds, color_e
-		))
+		if not dry_run:
+			print("{}================== {}: compiling '{}' (round {} of {}) =================={}".format(
+				color_s, TexmgrConstants.NAME, file, ii+1, rounds, color_e
+			))
 		code = run_command(command, verbose, dry_run)
 		if code != 0:
 			return code
@@ -184,23 +222,9 @@ def main(argv: Optional[List[str]] = None):
 
 	## initizations
 	if args.init:
-		if not file_list:
-			file_list = ["."]
-		for file in file_list:
-			code = init(file, TexmgrConstants.TEMPLATE_DOCUMENT, args.verbose, args.dry_run)
-			if code != 0:
-				print("Error when creating file '{}'".format(file))
-				exit(code)
-		exit(0)
+		init_wrapper(file_list, TexmgrConstants.TEMPLATE_DOCUMENT, args.verbose, args.dry_run)
 	if args.init_beamer:
-		if not file_list:
-			file_list = ["."]
-		for file in file_list:
-			code = init(file, TexmgrConstants.TEMPLATE_BEAMER, args.verbose, args.dry_run)
-			if code != 0:
-				print("Error when creating file '{}'".format(file))
-				exit(code)
-		exit(0)
+		init_wrapper(file_list, TexmgrConstants.TEMPLATE_BEAMER, args.verbose, args.dry_run)
 
 
 	if not file_list:
