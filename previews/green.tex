@@ -1,0 +1,53 @@
+\documentclass[14pt]{beamer}
+\usetheme[progressbar=frametitle,block=fill,background=dark]{metropolis}
+
+\usecolortheme[green]{eyedark}
+
+\usepackage{my-preamble}
+\usepackage{my-math}
+\usepackage{my-metropolis}
+
+
+\title{Metropolis theme example}
+\subtitle{eyedark green}
+\author{Dorian Lesbre}
+\date{2021-03-30}
+
+\begin{document}
+
+\begin{frame}[noframenumbering,plain]
+	\titlepage
+\end{frame}
+
+\section{Sample section page}
+
+\begin{frame}{Sample frame}
+	This is a sample frame:
+	\begin{multicols}{2}
+		\begin{itemize}
+			\item list item
+			\item other list item
+		\end{itemize}
+		\begin{enumerate}
+			\item numbered list item
+			\item other list item
+		\end{enumerate}
+	\end{multicols}
+	~\\
+	\begin{block}{Sample block}
+		Sample block content
+	\end{block}
+\end{frame}
+
+\begin{frame}{Sample frame}
+
+	\begin{alertblock}{Sample alertblock}
+		Sample block content
+	\end{alertblock}
+	~\\
+	\begin{exampleblock}{Sample exampleblock}
+		Sample block content
+	\end{exampleblock}
+\end{frame}
+
+\end{document}
