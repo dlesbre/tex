@@ -30,7 +30,6 @@ To install the script, add an `alias texmgr='path/to/texmgr'`.
 - [scripts/texmgr.py](scripts/texmgr.py): python script to compile/initialize and clean texfiles.
 - [scripts/texmgr](scripts/texmgr): executable that calls the `texmgr.py` script's `main`
 
-
 		Usage: texmgr [--flags] [file list]
 
 		Compiles all files in the file list (defaut, all *.tex files
@@ -38,21 +37,23 @@ To install the script, add an `alias texmgr='path/to/texmgr'`.
 		build files afterward
 
 		Flags:
-		  --no-clean -n     don't remove build files after compiling
-		  --rounds -r <int> number of compile rounds, default = 3
+		  -n --no-clean     don't remove build files after compiling
+		  -r --rounds <int> number of compile rounds, default = 3
 
-		  --init -i         create files in file list rather than compile them
-		  --init-beamer -b  same as --init, but uses the beamer template to create files
-		  --clean -c        only clean files (removes build files)
+		  -i --init         doesn't compile, creates files in file list
+		  -b --init-beamer  same as --init, but uses the beamer template to create files
+		  -t --open-tex     doesn't compile, opens tex files in editor (can run with -i/-b)
+		  -p --open-pdf     compiles and opens PDF files in viewer
+
+		  -c --clean        doesn't compile, removes build files
 		                    Files removed match a .tex file in the list
 		                    and have the following extensions:
 		                      aux, log, nav, out, synctez.gz, snm, vrb, toc, bbl
 
-		  --verbose -v      print the commands called
-		  --dry-run -d      print the commands but don't run them
+		  -v --verbose      print the commands called
+		  -d --dry-run      print the commands but don't run them
 		  --version         show version number
-		  --help -h         show this help
-
+		  -h --help         show this help
 
 
 **Old scripts:**

@@ -19,14 +19,14 @@ class TexmgrConstants:
 	Constants used by Texmgr
 	"""
 	NAME = "texmgr"
-	VERSION = "0.1.0"
+	VERSION = "0.1.1"
 
 	# Path to templates copied on init
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
 	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
 
-	OPEN_EDITOR_ON_INIT = True
-	OPEN_EDITOR_COMMAND = 'codium {file_parent}'
+	OPEN_EDITOR_COMMAND = 'codium {file_parent} && codium {file}'
+	OPEN_PDF_COMMAND  = 'okular {pdf} &'
 
 	# Files with name <file>.<ext> are remove by clean. With
 	#   <file> such the name of the .tex file (or any tex file)
@@ -60,13 +60,20 @@ class TexmgrConstants:
 	def command_format(cls, command: str, file: str) -> str:
 		"""Formats a command: replaces
 		- {file} with given file
-		- {file_parent} with file basedir"""
+		- {file_parent} with file basedir
+		- {pdf} with the generated pdf file
+		"""
 		parent = dirname(file)
 		if parent == "":
 			parent = "."
+		pdf = file
+		if pdf.endswith(".tex"):
+			pdf = pdf[:-4]
+		pdf += ".pdf"
 		return command.format(
 			file = file,
 			file_parent = parent,
+			pdf = pdf,
 		)
 
 
@@ -107,7 +114,10 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> int:
 	command = 'cp "{}" "{}"'.format(template, file)
 	return run_command(command, verbose, dry_run)
 
-def init_wrapper(file_list: str, template: str, verbose = False, dry_run = False) -> int:
+def init_wrapper(
+		file_list: str, template: str, open_tex: bool,
+		verbose = False, dry_run = False
+	) -> int:
 	"""Initializes all files and checks if editor openning is needed"""
 	if not file_list:
 		file_list = ["."]
@@ -116,7 +126,7 @@ def init_wrapper(file_list: str, template: str, verbose = False, dry_run = False
 		if code != 0:
 			print("Error when creating file '{}'".format(file))
 			exit(code)
-		if TexmgrConstants.OPEN_EDITOR_ON_INIT:
+		if open_tex:
 			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, file)
 			code = run_command(command, verbose, dry_run)
 			if code != 0:
@@ -150,6 +160,8 @@ parser = argparse.ArgumentParser(TexmgrConstants.NAME, add_help=False,
 parser.add_argument("file", nargs="*", action="append")
 parser.add_argument("--init", "-i", action="store_true")
 parser.add_argument("--init-beamer", "-b", action="store_true")
+parser.add_argument("--open-tex", "-t", action="store_true")
+parser.add_argument("--open-pdf", "-p", action="store_true")
 parser.add_argument("--rounds", "-r", type=int, default=3)
 parser.add_argument("--no-clean", "-n", action="store_true")
 parser.add_argument("--clean", "-c", action="store_true")
@@ -175,20 +187,23 @@ def get_help() -> str:
 	build files afterward
 
 	Flags:
-	  {s}--no-clean -n{e}     don't remove build files after compiling
-	  {s}--rounds -r{e} <int> number of compile rounds, default = 3
+	  {s}-n --no-clean{e}     don't remove build files after compiling
+	  {s}-r --rounds{e} <int> number of compile rounds, default = 3
 
-	  {s}--init -i{e}         create files in file list rather than compile them
-	  {s}--init-beamer -b{e}  same as --init, but uses the beamer template to create files
-	  {s}--clean -c{e}        only clean files (removes build files)
+	  {s}-i --init{e}         doesn't compile, creates files in file list
+	  {s}-b --init-beamer{e}  same as --init, but uses the beamer template to create files
+	  {s}-t --open-tex{e}     doesn't compile, opens tex files in editor (can run with -i/-b)
+	  {s}-p --open-pdf{e}     compiles and opens PDF files in viewer
+
+	  {s}-c --clean{e}        doesn't compile, removes build files
 	  {s}{e}                  Files removed match a .tex file in the list
 	  {s}{e}                  and have the following extensions:
 	  {s}{e}                    {ext}
 
-	  {s}--verbose -v{e}      print the commands called
-	  {s}--dry-run -d{e}      print the commands but don't run them
+	  {s}-v --verbose{e}      print the commands called
+	  {s}-d --dry-run{e}      print the commands but don't run them
 	  {s}--version{e}         show version number
-	  {s}--help -h{e}         show this help
+	  {s}-h --help{e}         show this help
 	""".replace("\n\t", "\n").format(
 		name = TexmgrConstants.pretty_name(),
 		version = TexmgrConstants.VERSION,
@@ -222,10 +237,13 @@ def main(argv: Optional[List[str]] = None):
 
 	## initizations
 	if args.init:
-		init_wrapper(file_list, TexmgrConstants.TEMPLATE_DOCUMENT, args.verbose, args.dry_run)
+		init_wrapper(
+			file_list, TexmgrConstants.TEMPLATE_DOCUMENT, args.open_tex, args.verbose, args.dry_run
+		)
 	if args.init_beamer:
-		init_wrapper(file_list, TexmgrConstants.TEMPLATE_BEAMER, args.verbose, args.dry_run)
-
+		init_wrapper(
+			file_list, TexmgrConstants.TEMPLATE_BEAMER, args.open_tex, args.verbose, args.dry_run
+		)
 
 	if not file_list:
 		## Generate file list based on all tex files in CWD
@@ -239,6 +257,15 @@ def main(argv: Optional[List[str]] = None):
 				exit(code)
 		exit(0)
 
+	if args.open_tex:
+		for file in file_list:
+			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, file)
+			code = run_command(command, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error when opening '{}' in editor".format(file))
+				exit(code)
+		exit(0)
+
 	for file in file_list:
 		code = compile(file, args.rounds, args.verbose, args.dry_run)
 		if code != 0:
@@ -248,4 +275,12 @@ def main(argv: Optional[List[str]] = None):
 			code = clean(file, args.verbose, args.dry_run)
 			if code != 0:
 				print("Error cleaning build files for '{}'".format(file))
+				exit(code)
+
+	if args.open_pdf:
+		for file in file_list:
+			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_PDF_COMMAND, file)
+			code = run_command(command, args.verbose, args.dry_run)
+			if code != 0:
+				print("Error when opening '{}' in viewer".format(file))
 				exit(code)
