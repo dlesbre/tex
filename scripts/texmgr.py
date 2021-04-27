@@ -99,18 +99,24 @@ def clean(file: str, verbose = False, dry_run = False) -> int:
 	)
 	return run_command(command, verbose, dry_run)
 
-def init(file: str, template: str, verbose = False, dry_run = False) -> int:
-	"""Copies template to file"""
+def make_file_name(file: str, template: str) -> str:
+	"""Make a valid tex file name
+	- if file is a directory, adds template basename
+	- if file dosn't end in .tex, adds it"""
 	if isdir(file):
 		file = join(file, basename(template))
+	if not file.endswith(".tex"):
+		file = file + ".tex"
+	return file
+
+def init(file: str, template: str, verbose = False, dry_run = False) -> int:
+	"""Copies template to file"""
 	if exists(file):
 		inp = input(
 			"File '{}' aldready exists, overwrite with new LaTeX file (y/n) ? ".format(file)
 		)
 		if not inp or inp.lower()[0] != "y":
 			return 0
-	if not file.endswith(".tex"):
-		file = file + ".tex"
 	command = 'cp "{}" "{}"'.format(template, file)
 	return run_command(command, verbose, dry_run)
 
@@ -122,15 +128,16 @@ def init_wrapper(
 	if not file_list:
 		file_list = ["."]
 	for file in file_list:
-		code = init(file, template, verbose, dry_run)
+		filename = make_file_name(file, template)
+		code = init(filename, template, verbose, dry_run)
 		if code != 0:
-			print("Error when creating file '{}'".format(file))
+			print("Error when creating file '{}'".format(filename))
 			exit(code)
 		if open_tex:
-			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, file)
+			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, filename)
 			code = run_command(command, verbose, dry_run)
 			if code != 0:
-				print("Error when opening editor for '{}'".format(file))
+				print("Error when opening editor for '{}'".format(filename))
 				exit(code)
 	exit(0)
 
