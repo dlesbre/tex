@@ -32,7 +32,8 @@ class TexmgrConstants:
 	#   <file> such the name of the .tex file (or any tex file)
 	#   <ext> an extension from this list
 	CLEAN_EXTENSIONS = [
-		"aux", "log", "nav", "out", "synctez.gz", "snm", "vrb", "toc", "bbl"
+		"aux", "log", "nav", "out", "synctez.gz", "snm", "vrb", "toc", "bbl",
+		"fls", "fdb_latexmk",
 	]
 
 	TEX_COMMAND = (
