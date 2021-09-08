@@ -190,7 +190,7 @@ def get_help() -> str:
 
 	Usage: {name} {s}[--flags] [file list]{e}
 
-	Compiles all files in the file list (defaut, all *.tex files
+	Compiles all files in the file list (default, all *.tex files
 	in current working directory). Compile three times and clean
 	build files afterward
 
