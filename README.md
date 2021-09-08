@@ -10,7 +10,7 @@ the same folder as your `.tex` document
 
 For general use on Linux, place the `.sty` files in `~/texmf/tex/latex/` or any subdirectory thereof.
 
-To install the script, add an `alias texmgr='path/to/texmgr'`.
+To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc`.
 
 ## Contents
 
