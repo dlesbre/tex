@@ -48,7 +48,7 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 		  -c --clean        doesn't compile, removes build files
 		                    Files removed match a .tex file in the list
 		                    and have the following extensions:
-		                      aux, log, nav, out, synctez.gz, snm, vrb, toc, bbl
+		                      aux, log, nav, out, synctez.gz, synctex.gz, snm, vrb, toc, bbl, fls, fdb_latexmk, blg
 
 		  -v --verbose      print the commands called
 		  -d --dry-run      print the commands but don't run them
