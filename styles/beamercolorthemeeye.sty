@@ -2,7 +2,7 @@
 %% Custom color package for beamer metropolis
 %% Use with \usecolortheme[color]{eyedark}
 %% Provides the following colors:
-%%   - dark mode: blue, red and green
+%%   - dark mode: blue, red, green and black
 %%   - light mode: yellow and cyan
 %%
 %% Author: Dorian Lesbre
@@ -18,6 +18,7 @@
 \newtoggle{blue}
 \newtoggle{red}
 \newtoggle{green}
+\newtoggle{black}
 \newtoggle{yellow}
 \newtoggle{cyan}
 
@@ -25,6 +26,7 @@
 	\DeclareOptionBeamer{blue}{\toggletrue{blue}}
 	\DeclareOptionBeamer{red}{\toggletrue{red}}
 	\DeclareOptionBeamer{green}{\toggletrue{green}}
+	\DeclareOptionBeamer{black}{\toggletrue{black}}
 	\DeclareOptionBeamer{yellow}{\toggletrue{yellow}}
 	\DeclareOptionBeamer{cyan}{\toggletrue{cyan}}
 
@@ -53,6 +55,14 @@
 \colorlet{eyegreen_blockbody_bg}{eyegreen_title_bg!120}
 \definecolor{eyegreen_example}{HTML}{1414B0}
 
+% black
+\definecolor{eyeblack_bg}{HTML}{575451}
+\definecolor{eyeblack_title_bg}{HTML}{171514}
+\definecolor{eyeblack_highlight}{HTML}{d13f3f}
+\definecolor{eyeblack_blockbody_bg}{HTML}{42403c}
+\definecolor{eyeblack_example}{HTML}{1414B0}
+\colorlet{eyeblack_blocktitle_bg}{eyeblack_title_bg}
+
 % yellow
 \definecolor{eyeyellow_bg}{HTML}{eae7dc}
 \definecolor{eyeyellow_title_bg}{HTML}{d8c3a5}
@@ -77,8 +87,9 @@
 		\setbeamercolor*{background canvas}{bg=eyeblue_bg}
 		\setbeamercolor*{block title}{bg=eyeblue_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyeblue_blockbody_bg}
+	}{}
 
-	}{\iftoggle{red}{
+	\iftoggle{red}{
 		\setbeamercolor*{normal text}{fg=white, bg=black}
 		\setbeamercolor*{normal text}{fg=white, bg=black}
 		\setbeamercolor*{frametitle}{bg=eyered_title_bg, fg=white}
@@ -86,31 +97,44 @@
 		\setbeamercolor*{block title}{bg=eyered_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyered_blockbody_bg}
 		\setbeamercolor*{alerted text}{fg=eyered_highlight}
+	}{}
 
-	}{\iftoggle{green}{
+	\iftoggle{green}{
 		\setbeamercolor*{normal text}{fg=white, bg=black}
 		\setbeamercolor*{frametitle}{bg=eyegreen_title_bg, fg=white}
 		\setbeamercolor*{background canvas}{bg=eyegreen_bg}
 		\setbeamercolor*{block title}{bg=eyegreen_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyegreen_blockbody_bg}
 		\setbeamercolor*{example text}{fg=eyegreen_example}
+	}{}
 
-	}{\iftoggle{yellow}{
+	\iftoggle{black}{
+		\setbeamercolor*{normal text}{fg=white, bg=black}
+		\setbeamercolor*{frametitle}{bg=eyeblack_title_bg, fg=white}
+		\setbeamercolor*{background canvas}{bg=eyeblack_bg}
+		\setbeamercolor*{block title}{bg=eyeblack_blocktitle_bg}
+		\setbeamercolor*{block body}{bg=eyeblack_blockbody_bg}
+		\setbeamercolor*{alerted text}{fg=eyeblack_highlight}
+	}{}
+
+	\iftoggle{yellow}{
 		\setbeamercolor{normal text}{fg=black, bg=white}
 		\setbeamercolor*{frametitle}{bg=eyeyellow_title_bg, fg=black}
 		\setbeamercolor*{background canvas}{bg=eyeyellow_bg}
 		\setbeamercolor*{block title}{bg=eyeyellow_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyeyellow_blockbody_bg}
 		\setbeamercolor*{alerted text}{fg=eyeyellow_highlight}
+	}{}
 
-	}{\iftoggle{cyan}{
+	\iftoggle{cyan}{
 		\setbeamercolor{normal text}{fg=black, bg=white}
 		\setbeamercolor*{frametitle}{bg=eyecyan_title_bg, fg=black}
 		\setbeamercolor*{background canvas}{bg=eyecyan_bg}
 		\setbeamercolor*{block title}{bg=eyecyan_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyecyan_blockbody_bg}
 		\setbeamercolor*{alerted text}{fg=eyecyan_highlight}
-	}{}}}}}
+	}{}
+
 }{}
 
 \endinput
