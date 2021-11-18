@@ -33,12 +33,11 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 		Usage: texmgr [--flags] [file list]
 
 		Compiles all files in the file list (defaut, all *.tex files
-		in current working directory). Compile three times and clean
-		build files afterward
+		in current working directory).
+		Compiles once, runs bibtex, then compiles twice.
 
 		Flags:
 		  -n --no-clean     don't remove build files after compiling
-		  -r --rounds <int> number of compile rounds, default = 3
 
 		  -i --init         doesn't compile, creates files in file list
 		  -b --init-beamer  same as --init, but uses the beamer template to create files

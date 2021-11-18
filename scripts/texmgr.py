@@ -213,8 +213,8 @@ def get_help() -> str:
 	Usage: {name} {s}[--flags] [file list]{e}
 
 	Compiles all files in the file list (default, all *.tex files
-	in current working directory). Compile three times and clean
-	build files afterward
+	in current working directory).
+	Compiles once, runs bibtex, then compiles twice.
 
 	Flags:
 	  {s}-n --no-clean{e}     don't remove build files after compiling
