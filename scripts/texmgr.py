@@ -5,7 +5,7 @@ import argparse
 
 from os import system, listdir
 from os.path import exists, isdir, basename, join, dirname
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from sys import argv as sys_argv
 
 
@@ -13,6 +13,7 @@ from sys import argv as sys_argv
 # Constants
 # ============================
 
+Command = str
 
 class TexmgrConstants:
 	"""
@@ -25,8 +26,7 @@ class TexmgrConstants:
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
 	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
 
-	OPEN_EDITOR_COMMAND = 'codium {file_parent} && codium {file}'
-	OPEN_PDF_COMMAND  = 'okular {pdf} &'
+
 
 	# Files with name <file>.<ext> are removed by clean. With
 	#   <file> the name of the .tex file (or any tex file)
@@ -36,10 +36,21 @@ class TexmgrConstants:
 		"out", "snm", "synctex.gz", "synctez.gz", "toc", "vrb", "vtc"
 	]
 
-	TEX_COMMAND = (
-		'texfot pdflatex -file-line-error  -interaction=nonstopmode --enable-write18 '
-		'"{file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
+	TEX_COMMAND : Command = (
+		'texfot pdflatex -file-line-error -interaction=nonstopmode --enable-write18 '
+		'"{tex_file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
 	)
+	# Ignore errors on bibtex
+	BIBTEX_COMMAND : Command = 'bibtex "{file}" || true'
+	OPEN_EDITOR_COMMAND : Command = 'codium {file_parent} && codium {tex_file}'
+	OPEN_PDF_COMMAND : Command  = 'okular {pdf_file} &'
+
+	COMPILE_SEQUENCE : List[Tuple[Command, str]] = [
+		(TEX_COMMAND, 'compiling "{tex_file}"'),
+		(BIBTEX_COMMAND, 'running bibtex on "{file}"'),
+		(TEX_COMMAND, 'compiling "{tex_file}"'),
+		(TEX_COMMAND, 'compiling "{tex_file}"'),
+	]
 
 	USE_COLOR = True # use ansi in output
 	COLOR_START = "\033[33;1m" # bold orange text
@@ -60,21 +71,26 @@ class TexmgrConstants:
 	@classmethod
 	def command_format(cls, command: str, file: str) -> str:
 		"""Formats a command: replaces
-		- {file} with given file
-		- {file_parent} with file basedir
-		- {pdf} with the generated pdf file
+		- {tex_file} with given file (including path, adds .tex if absent)
+		- {file} with the filename (same as tex_file without .tex extension)
+		- {file_parent} with file basedir (or '.' if empty)
+		- {pdf_file} with the generated pdf file
 		"""
+		# ensure file has the .tex extension
+		if file.endswith(".tex"):
+			filename = file[:-4]
+		else:
+			filename = file
+			file += ".tex"
 		parent = dirname(file)
 		if parent == "":
 			parent = "."
-		pdf = file
-		if pdf.endswith(".tex"):
-			pdf = pdf[:-4]
-		pdf += ".pdf"
+		pdf = file[:-4] + ".pdf"
 		return command.format(
-			file = file,
+			tex_file = file,
+			file = filename,
 			file_parent = parent,
-			pdf = pdf,
+			pdf_file = pdf,
 		)
 
 
@@ -82,14 +98,18 @@ class TexmgrConstants:
 # Functions
 # ============================
 
-
 def run_command(command: str, verbose = False, dry_run = False) -> int:
-	"""Runs a command and returns it's exit status"""
+	"""Formats and runs a command and returns it's exit status"""
 	if verbose or dry_run:
 		print(command)
 	if dry_run:
 		return 0
 	return system(command)
+
+def format_and_run_command(command: str, file: str, verbose = False, dry_run = False) -> int:
+	"""Formats and runs a command and returns it's exit status"""
+	command = TexmgrConstants.command_format(command, file)
+	return run_command(command, verbose, dry_run)
 
 def clean(file: str, verbose = False, dry_run = False) -> int:
 	"""Cleans all build files related to file"""
@@ -122,7 +142,7 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> int:
 	return run_command(command, verbose, dry_run)
 
 def init_wrapper(
-		file_list: str, template: str, open_tex: bool,
+		file_list: List[str], template: str, open_tex: bool,
 		verbose = False, dry_run = False
 	) -> int:
 	"""Initializes all files and checks if editor openning is needed"""
@@ -135,24 +155,27 @@ def init_wrapper(
 			print("Error when creating file '{}'".format(filename))
 			exit(code)
 		if open_tex:
-			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, filename)
-			code = run_command(command, verbose, dry_run)
+			code = format_and_run_command(
+				TexmgrConstants.OPEN_EDITOR_COMMAND, filename,
+				verbose, dry_run)
 			if code != 0:
 				print("Error when opening editor for '{}'".format(filename))
 				exit(code)
 	exit(0)
 
-def compile(file: str, rounds: int, verbose = False, dry_run = False) -> int:
+def compile(file: str, verbose = False, dry_run = False) -> int:
 	"""compiles the given file"""
 	command = TexmgrConstants.command_format(TexmgrConstants.TEX_COMMAND, file)
 	color_s = TexmgrConstants.COLOR_START if TexmgrConstants.USE_COLOR else ""
 	color_e = TexmgrConstants.COLOR_END if TexmgrConstants.USE_COLOR else ""
-	for ii in range(rounds):
+	total = len(TexmgrConstants.COMPILE_SEQUENCE)
+	for ii, (command, doc) in enumerate(TexmgrConstants.COMPILE_SEQUENCE):
 		if not dry_run:
-			print("{}================== {}: compiling '{}' (round {} of {}) =================={}".format(
-				color_s, TexmgrConstants.NAME, file, ii+1, rounds, color_e
+			print("{}================== {}: step {}/{} - {} =================={}".format(
+				color_s, TexmgrConstants.NAME, ii+1, total,
+				TexmgrConstants.command_format(doc, file), color_e
 			))
-		code = run_command(command, verbose, dry_run)
+		code = format_and_run_command(command, file, verbose, dry_run)
 		if code != 0:
 			return code
 	return 0
@@ -170,7 +193,6 @@ parser.add_argument("--init", "-i", action="store_true")
 parser.add_argument("--init-beamer", "-b", action="store_true")
 parser.add_argument("--open-tex", "-t", action="store_true")
 parser.add_argument("--open-pdf", "-p", action="store_true")
-parser.add_argument("--rounds", "-r", type=int, default=3)
 parser.add_argument("--no-clean", "-n", action="store_true")
 parser.add_argument("--clean", "-c", action="store_true")
 parser.add_argument("--verbose", "-v", action="store_true")
@@ -183,7 +205,7 @@ def get_help() -> str:
 	color_s = ""
 	color_e = ""
 	if TexmgrConstants.USE_COLOR:
-		color_s = "\033[93m"
+		color_s = "\033[33m"
 		color_e = "\033[38m"
 	return """{name} version {version}
 	Small utility script to compile, generate and clean LaTeX.
@@ -196,7 +218,6 @@ def get_help() -> str:
 
 	Flags:
 	  {s}-n --no-clean{e}     don't remove build files after compiling
-	  {s}-r --rounds{e} <int> number of compile rounds, default = 3
 
 	  {s}-i --init{e}         doesn't compile, creates files in file list
 	  {s}-b --init-beamer{e}  same as --init, but uses the beamer template to create files
@@ -267,15 +288,17 @@ def main(argv: Optional[List[str]] = None):
 
 	if args.open_tex:
 		for file in file_list:
-			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_EDITOR_COMMAND, file)
-			code = run_command(command, args.verbose, args.dry_run)
+			code = format_and_run_command(
+				TexmgrConstants.OPEN_EDITOR_COMMAND, file,
+				args.verbose, args.dry_run
+			)
 			if code != 0:
 				print("Error when opening '{}' in editor".format(file))
 				exit(code)
 		exit(0)
 
 	for file in file_list:
-		code = compile(file, args.rounds, args.verbose, args.dry_run)
+		code = compile(file, args.verbose, args.dry_run)
 		if code != 0:
 			print("Error when compiling '{}'".format(file))
 			exit(code)
@@ -287,8 +310,10 @@ def main(argv: Optional[List[str]] = None):
 
 	if args.open_pdf:
 		for file in file_list:
-			command = TexmgrConstants.command_format(TexmgrConstants.OPEN_PDF_COMMAND, file)
-			code = run_command(command, args.verbose, args.dry_run)
+			code = format_and_run_command(
+				TexmgrConstants.OPEN_PDF_COMMAND, file,
+				args.verbose, args.dry_run
+			)
 			if code != 0:
 				print("Error when opening '{}' in viewer".format(file))
 				exit(code)
