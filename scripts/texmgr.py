@@ -28,12 +28,12 @@ class TexmgrConstants:
 	OPEN_EDITOR_COMMAND = 'codium {file_parent} && codium {file}'
 	OPEN_PDF_COMMAND  = 'okular {pdf} &'
 
-	# Files with name <file>.<ext> are remove by clean. With
-	#   <file> such the name of the .tex file (or any tex file)
+	# Files with name <file>.<ext> are removed by clean. With
+	#   <file> the name of the .tex file (or any tex file)
 	#   <ext> an extension from this list
 	CLEAN_EXTENSIONS = [
-		"aux", "log", "nav", "out", "synctez.gz", "synctex.gz", "snm", "vrb", "toc", "bbl",
-		"fls", "fdb_latexmk", "blg"
+		"aux", "bak", "bbl", "blg", "fdb_latexmk", "fls", "log", "nav",
+		"out", "snm", "synctex.gz", "synctez.gz", "toc", "vrb", "vtc"
 	]
 
 	TEX_COMMAND = (
