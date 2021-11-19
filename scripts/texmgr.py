@@ -2,8 +2,9 @@
 A simple python script to compile, generate and clean LaTeX files
 """
 import argparse
+import subprocess
 
-from os import system, listdir
+from os import listdir
 from os.path import exists, isdir, basename, join, dirname
 from typing import Optional, List, Tuple
 from sys import argv as sys_argv
@@ -14,6 +15,7 @@ from sys import argv as sys_argv
 # ============================
 
 Command = str
+CompletedProcess = subprocess.CompletedProcess
 
 class TexmgrConstants:
 	"""
@@ -26,8 +28,6 @@ class TexmgrConstants:
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")
 	TEMPLATE_BEAMER = join(dirname(__file__), "../templates/beamer.tex")
 
-
-
 	# Files with name <file>.<ext> are removed by clean. With
 	#   <file> the name of the .tex file (or any tex file)
 	#   <ext> an extension from this list
@@ -38,7 +38,7 @@ class TexmgrConstants:
 
 	TEX_COMMAND : Command = (
 		'texfot pdflatex -file-line-error -interaction=nonstopmode --enable-write18 '
-		'"{tex_file}" | grep --color=auto -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
+		'"{tex_file}" | grep --color=always -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
 	)
 	# Ignore errors on bibtex
 	BIBTEX_COMMAND : Command = 'bibtex "{file}" || true'
@@ -54,6 +54,7 @@ class TexmgrConstants:
 
 	USE_COLOR = True # use ansi in output
 	COLOR_START = "\033[33;1m" # bold orange text
+	COLOR_ERROR = "\033[31m" # red text
 	COLOR_END = "\033[38;22m" # Reset
 
 	@classmethod
@@ -93,32 +94,58 @@ class TexmgrConstants:
 			pdf_file = pdf,
 		)
 
+	@classmethod
+	def check_error(cls, process:CompletedProcess, error_msg:str) -> None:
+		"""Check process return code
+		If non-zero, display's an error message and process stderr/stdout before exiting"""
+		color_start = ""
+		color_error = ""
+		color_end = ""
+		if cls.USE_COLOR:
+			color_start = cls.COLOR_START
+			color_error = cls.COLOR_ERROR
+			color_end = cls.COLOR_END
+		if process.returncode != 0:
+			print("{}{}:{} ERROR:{} {}".format(
+				color_start, cls.NAME, color_error, color_end, error_msg
+			))
+			if process.stderr:
+				print(process.stderr.decode())
+			if process.stdout:
+				print(process.stdout.decode())
+			exit(process.returncode)
 
 # ============================
 # Functions
 # ============================
 
-def run_command(command: str, verbose = False, dry_run = False) -> int:
+def run_command(command: str, verbose = False, dry_run = False) -> CompletedProcess:
 	"""Formats and runs a command and returns it's exit status"""
 	if verbose or dry_run:
 		print(command)
 	if dry_run:
-		return 0
-	return system(command)
+		return CompletedProcess("", 0, stderr=bytes(), stdout=bytes())
+	return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-def format_and_run_command(command: str, file: str, verbose = False, dry_run = False) -> int:
+def format_and_run_command(
+		command: str, file: str, verbose = False, dry_run = False
+	) -> CompletedProcess:
 	"""Formats and runs a command and returns it's exit status"""
 	command = TexmgrConstants.command_format(command, file)
 	return run_command(command, verbose, dry_run)
 
-def clean(file: str, verbose = False, dry_run = False) -> int:
+def clean(file: str, verbose = False, dry_run = False) -> None:
 	"""Cleans all build files related to file"""
 	if file.endswith(".tex"):
 		file = file[:-4]
 	command = 'rm -f "{}.{}"'.format(
 		file, '" "{}.'.format(file).join(TexmgrConstants.CLEAN_EXTENSIONS)
 	)
-	return run_command(command, verbose, dry_run)
+	process = run_command(command, verbose, dry_run)
+	TexmgrConstants.check_error(process,
+		'when cleaning build files for "{}"'.format(file)
+	)
+
 
 def make_file_name(file: str, template: str) -> str:
 	"""Make a valid tex file name
@@ -130,16 +157,19 @@ def make_file_name(file: str, template: str) -> str:
 		file = file + ".tex"
 	return file
 
-def init(file: str, template: str, verbose = False, dry_run = False) -> int:
+def init(file: str, template: str, verbose = False, dry_run = False) -> None:
 	"""Copies template to file"""
 	if exists(file):
 		inp = input(
 			"File '{}' aldready exists, overwrite with new LaTeX file (y/n) ? ".format(file)
 		)
 		if not inp or inp.lower()[0] != "y":
-			return 0
+			exit(0)
 	command = 'cp "{}" "{}"'.format(template, file)
-	return run_command(command, verbose, dry_run)
+	process = run_command(command, verbose, dry_run)
+	TexmgrConstants.check_error(process,
+		'when initializing file "{}"'.format(file)
+	)
 
 def init_wrapper(
 		file_list: List[str], template: str, open_tex: bool,
@@ -150,20 +180,21 @@ def init_wrapper(
 		file_list = ["."]
 	for file in file_list:
 		filename = make_file_name(file, template)
-		code = init(filename, template, verbose, dry_run)
-		if code != 0:
-			print("Error when creating file '{}'".format(filename))
-			exit(code)
+		init(filename, template, verbose, dry_run)
 		if open_tex:
-			code = format_and_run_command(
-				TexmgrConstants.OPEN_EDITOR_COMMAND, filename,
-				verbose, dry_run)
-			if code != 0:
-				print("Error when opening editor for '{}'".format(filename))
-				exit(code)
+			process = format_and_run_command(
+				TexmgrConstants.OPEN_EDITOR_COMMAND, filename, verbose, dry_run
+			)
+			TexmgrConstants.check_error(process,
+				'when opening editor for "{}"'.format(filename)
+			)
 	exit(0)
 
-def compile(file: str, verbose = False, dry_run = False) -> int:
+def error_tex_in_output(output: str) -> bool:
+	"""parses tex output looking for fatal errors"""
+	return ("Fatal error" in output) or ("no output PDF" in output)
+
+def compile(file: str, verbose = False, dry_run = False) -> None:
 	"""compiles the given file"""
 	command = TexmgrConstants.command_format(TexmgrConstants.TEX_COMMAND, file)
 	color_s = TexmgrConstants.COLOR_START if TexmgrConstants.USE_COLOR else ""
@@ -171,14 +202,15 @@ def compile(file: str, verbose = False, dry_run = False) -> int:
 	total = len(TexmgrConstants.COMPILE_SEQUENCE)
 	for ii, (command, doc) in enumerate(TexmgrConstants.COMPILE_SEQUENCE):
 		if not dry_run:
-			print("{}================== {}: step {}/{} - {} =================={}".format(
+			print("{}{}: step {}/{} - {}{}".format(
 				color_s, TexmgrConstants.NAME, ii+1, total,
 				TexmgrConstants.command_format(doc, file), color_e
 			))
-		code = format_and_run_command(command, file, verbose, dry_run)
-		if code != 0:
-			return code
-	return 0
+		process = format_and_run_command(command, file, verbose, dry_run)
+		if error_tex_in_output(process.stdout.decode()):
+			process.returncode = 1
+		TexmgrConstants.check_error(process, 'when compiling "{}"'.format(file))
+	print(process.stdout.decode())
 
 # ============================
 # Argument parser and main
@@ -280,40 +312,31 @@ def main(argv: Optional[List[str]] = None):
 
 	if args.clean:
 		for file in file_list:
-			code = clean(file, args.verbose, args.dry_run)
-			if code != 0:
-				print("Error removing build files for '{}'".format(file))
-				exit(code)
+			clean(file, args.verbose, args.dry_run)
 		exit(0)
 
 	if args.open_tex:
 		for file in file_list:
-			code = format_and_run_command(
+			process = format_and_run_command(
 				TexmgrConstants.OPEN_EDITOR_COMMAND, file,
 				args.verbose, args.dry_run
 			)
-			if code != 0:
-				print("Error when opening '{}' in editor".format(file))
-				exit(code)
+			TexmgrConstants.check_error(process,
+				'when opening editor for "{}"'.format(file)
+			)
 		exit(0)
 
 	for file in file_list:
-		code = compile(file, args.verbose, args.dry_run)
-		if code != 0:
-			print("Error when compiling '{}'".format(file))
-			exit(code)
+		compile(file, args.verbose, args.dry_run)
 		if not args.no_clean:
-			code = clean(file, args.verbose, args.dry_run)
-			if code != 0:
-				print("Error cleaning build files for '{}'".format(file))
-				exit(code)
+			clean(file, args.verbose, args.dry_run)
 
 	if args.open_pdf:
 		for file in file_list:
-			code = format_and_run_command(
+			process = format_and_run_command(
 				TexmgrConstants.OPEN_PDF_COMMAND, file,
 				args.verbose, args.dry_run
 			)
-			if code != 0:
-				print("Error when opening '{}' in viewer".format(file))
-				exit(code)
+			TexmgrConstants.check_error(process,
+				'when opening pdf file "{}"'.format(file)
+			)
