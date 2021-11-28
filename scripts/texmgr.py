@@ -43,7 +43,7 @@ class TexmgrConstants:
 	]
 
 	TEX_COMMAND : Command = (
-		'texfot pdflatex -file-line-error -interaction=nonstopmode --enable-write18 '
+		'texfot --tee=/dev/null --quiet --ignore="This is pdfTeX, Version" pdflatex -file-line-error -interaction=nonstopmode --enable-write18 '
 		'"{tex_file}" | grep --color=always -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
 	)
 	# Ignore errors on bibtex
