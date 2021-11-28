@@ -1,5 +1,11 @@
 """
 A simple python script to compile, generate and clean LaTeX files
+
+Useful contents:
+ - main(List[str])      main function, exits when done
+ - get_help() -> str    list of command line arguments for main
+ - TexmgrConstants      class containing many useful constants
+                        like the commands used and the tex compile sequence
 """
 import argparse
 import subprocess
