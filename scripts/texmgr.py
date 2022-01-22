@@ -216,7 +216,7 @@ def compile(file: str, verbose = False, dry_run = False) -> None:
 		if error_tex_in_output(process.stdout.decode()):
 			process.returncode = 1
 		TexmgrConstants.check_error(process, 'when compiling "{}"'.format(file))
-	print(process.stdout.decode())
+	print(process.stdout.decode().strip())
 
 # ============================
 # Argument parser and main
