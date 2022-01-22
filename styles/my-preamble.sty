@@ -14,10 +14,10 @@
 % Commonly used packages
 % ==========================
 
+\RequirePackage[french]{babel}
 \RequirePackage{listings}
 \RequirePackage{xcolor, colortbl}
 \RequirePackage[utf8]{inputenc}
-\RequirePackage[french]{babel}
 \RequirePackage[T1]{fontenc}
 
 \RequirePackage{amsfonts}
@@ -26,7 +26,6 @@
 \RequirePackage{amsthm}
 \RequirePackage{mathrsfs}
 \RequirePackage{nicefrac}
-\RequirePackage{stmaryrd}
 \RequirePackage{bm}
 
 \RequirePackage{url}
@@ -59,13 +58,14 @@
 	}
 }
 
-% Beamer margins
-\newlength\beamerleftmargin
-\setlength\beamerleftmargin{\Gm@lmargin}
+\@ifclassloaded{beamer}{
+	% Beamer margins
+	\newlength\beamerleftmargin
+	\setlength\beamerleftmargin{\Gm@lmargin}
 
-% Beamer margins
-\newlength\beamerrightmargin
-\setlength\beamerrightmargin{\Gm@rmargin}
+	\newlength\beamerrightmargin
+	\setlength\beamerrightmargin{\Gm@rmargin}
+}{}
 
 % ==========================
 % Color definitions
