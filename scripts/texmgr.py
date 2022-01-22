@@ -41,6 +41,9 @@ class TexmgrConstants:
 		"aux", "bak", "bbl", "blg", "fdb_latexmk", "fls", "log", "nav",
 		"out", "snm", "synctex.gz", "synctez.gz", "toc", "vrb", "vtc"
 	]
+	CLEAN_FOLDERS = [
+		"_minted-{file}",
+	]
 
 	TEX_COMMAND : Command = (
 		'texfot --tee=/dev/null --quiet --ignore="This is pdfTeX, Version" pdflatex -file-line-error -interaction=nonstopmode --enable-write18 '
@@ -151,6 +154,13 @@ def clean(file: str, verbose = False, dry_run = False) -> None:
 	TexmgrConstants.check_error(process,
 		'when cleaning build files for "{}"'.format(file)
 	)
+	command = 'rm -rf "{}"'.format(
+		'" "'.join(TexmgrConstants.CLEAN_FOLDERS)
+	)
+	process = format_and_run_command(command, file, verbose, dry_run)
+	TexmgrConstants.check_error(process,
+		'when cleaning build files for "{}"'.format(file)
+	)
 
 
 def make_file_name(file: str, template: str) -> str:
@@ -216,7 +226,8 @@ def compile(file: str, verbose = False, dry_run = False) -> None:
 		if error_tex_in_output(process.stdout.decode()):
 			process.returncode = 1
 		TexmgrConstants.check_error(process, 'when compiling "{}"'.format(file))
-	print(process.stdout.decode().strip())
+	if not dry_run:
+		print(process.stdout.decode().strip())
 
 # ============================
 # Argument parser and main
