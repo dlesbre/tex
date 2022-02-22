@@ -126,6 +126,13 @@
 \newcommand{\sizemmm}{\scriptsize}
 \newcommand{\sizemmmm}{\tiny}
 
+% Center a minted using the given with
+% \begin{mintedcenter}[<minted options>]{<width>}{<minted langage>}
+% ex: \begin{mintedcenter}[autogobble]{0.5\textwidth}{ocaml}
+\newenvironment{mintedcenter}[3][]
+{\center\minipage{#2}\minted[#1]{#3}}
+{\endminted\endminipage\endcenter}
+
 \endinput
 
 %% End of file my-preamble.sty
