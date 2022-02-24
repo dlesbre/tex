@@ -29,7 +29,7 @@ class TexmgrConstants:
 	Constants used by Texmgr
 	"""
 	NAME = "texmgr"
-	VERSION = "0.1.1"
+	VERSION = "0.1.2"
 
 	# Path to templates copied on init
 	TEMPLATE_DOCUMENT = join(dirname(__file__), "../templates/document.tex")

@@ -44,6 +44,8 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 		  -t --open-tex     doesn't compile, opens tex files in editor (can run with -i/-b)
 		  -p --open-pdf     compiles and opens PDF files in viewer
 
+		  -w --watch        watches the tex file and recompiles when it is changed
+
 		  -c --clean        doesn't compile, removes build files
 		                    Files removed match a .tex file in the list
 		                    and have the following extensions:
