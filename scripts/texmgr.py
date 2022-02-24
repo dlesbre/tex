@@ -10,9 +10,10 @@ Useful contents:
 import argparse
 import subprocess
 
-from os import listdir
+from os import listdir, stat
 from os.path import exists, isdir, basename, join, dirname
-from typing import Optional, List, Tuple
+from time import sleep
+from typing import Dict, Optional, List, Tuple
 from sys import argv as sys_argv
 
 
@@ -66,6 +67,8 @@ class TexmgrConstants:
 	COLOR_ERROR = "\033[31m" # red text
 	COLOR_END = "\033[38;22m" # Reset
 
+	POLLING_TIME = 1.0 # in seconds
+
 	@classmethod
 	def color(cls, string: str) -> str:
 		"""Wraps the string in ansi color if USE_COLOR is True"""
@@ -78,6 +81,13 @@ class TexmgrConstants:
 		"""Display colored name if USE_COLOR is True"""
 		return cls.color(cls.NAME)
 
+	@staticmethod
+	def with_tex_ext(file: str) -> str:
+		"""Ensures file endwith '.tex'"""
+		if not file.endswith(".tex"):
+			file += '.tex'
+		return file
+
 	@classmethod
 	def command_format(cls, command: str, file: str) -> str:
 		"""Formats a command: replaces
@@ -87,11 +97,8 @@ class TexmgrConstants:
 		- {pdf_file} with the generated pdf file
 		"""
 		# ensure file has the .tex extension
-		if file.endswith(".tex"):
-			filename = file[:-4]
-		else:
-			filename = file
-			file += ".tex"
+		file = cls.with_tex_ext(file)
+		filename = file[:-4]
 		parent = dirname(file)
 		if parent == "":
 			parent = "."
@@ -127,6 +134,11 @@ class TexmgrConstants:
 # ============================
 # Functions
 # ============================
+
+def get_mtime(filepath: str) -> float:
+	"""Return the modified time of a file"""
+	return stat(filepath).st_mtime
+
 
 def run_command(command: str, verbose = False, dry_run = False) -> CompletedProcess:
 	"""Formats and runs a command and returns it's exit status"""
@@ -166,7 +178,7 @@ def clean(file: str, verbose = False, dry_run = False) -> None:
 def make_file_name(file: str, template: str) -> str:
 	"""Make a valid tex file name
 	- if file is a directory, adds template basename
-	- if file dosn't end in .tex, adds it"""
+	- if file doesn't end in .tex, adds it"""
 	if isdir(file):
 		file = join(file, basename(template))
 	if not file.endswith(".tex"):
@@ -191,7 +203,7 @@ def init_wrapper(
 		file_list: List[str], template: str, open_tex: bool,
 		verbose = False, dry_run = False
 	) -> int:
-	"""Initializes all files and checks if editor openning is needed"""
+	"""Initializes all files and checks if editor opening is needed"""
 	if not file_list:
 		file_list = ["."]
 	for file in file_list:
@@ -213,14 +225,12 @@ def error_tex_in_output(output: str) -> bool:
 def compile(file: str, verbose = False, dry_run = False) -> None:
 	"""compiles the given file"""
 	command = TexmgrConstants.command_format(TexmgrConstants.TEX_COMMAND, file)
-	color_s = TexmgrConstants.COLOR_START if TexmgrConstants.USE_COLOR else ""
-	color_e = TexmgrConstants.COLOR_END if TexmgrConstants.USE_COLOR else ""
 	total = len(TexmgrConstants.COMPILE_SEQUENCE)
 	for ii, (command, doc) in enumerate(TexmgrConstants.COMPILE_SEQUENCE):
 		if not dry_run:
-			print("{}{}: step {}/{} - {}{}".format(
-				color_s, TexmgrConstants.NAME, ii+1, total,
-				TexmgrConstants.command_format(doc, file), color_e
+			print(TexmgrConstants.color("{}: step {}/{} - {}").format(
+				TexmgrConstants.NAME, ii+1, total,
+				TexmgrConstants.command_format(doc, file),
 			))
 		process = format_and_run_command(command, file, verbose, dry_run)
 		if error_tex_in_output(process.stdout.decode()):
@@ -228,6 +238,12 @@ def compile(file: str, verbose = False, dry_run = False) -> None:
 		TexmgrConstants.check_error(process, 'when compiling "{}"'.format(file))
 	if not dry_run:
 		print(process.stdout.decode().strip())
+
+def compile_and_clean(file, args) -> None:
+	"""Calls compile with the correct argument and cleans if args specifies it"""
+	compile(file, args.verbose, args.dry_run)
+	if not args.no_clean:
+		clean(file, args.verbose, args.dry_run)
 
 # ============================
 # Argument parser and main
@@ -248,6 +264,7 @@ parser.add_argument("--verbose", "-v", action="store_true")
 parser.add_argument("--dry-run", "-d", action="store_true")
 parser.add_argument("--version", action="store_true")
 parser.add_argument("--help", "-h", action="store_true")
+parser.add_argument("--watch", "-w", action="store_true")
 
 def get_help() -> str:
 	"""Returns the help string"""
@@ -272,6 +289,8 @@ def get_help() -> str:
 	  {s}-b --init-beamer{e}  same as --init, but uses the beamer template to create files
 	  {s}-t --open-tex{e}     doesn't compile, opens tex files in editor (can run with -i/-b)
 	  {s}-p --open-pdf{e}     compiles and opens PDF files in viewer
+
+	  {s}-w --watch{e}        watches the tex file and recompiles when it is changed
 
 	  {s}-c --clean{e}        doesn't compile, removes build files
 	  {s}{e}                  Files removed match a .tex file in the list
@@ -344,9 +363,7 @@ def main(argv: Optional[List[str]] = None):
 		exit(0)
 
 	for file in file_list:
-		compile(file, args.verbose, args.dry_run)
-		if not args.no_clean:
-			clean(file, args.verbose, args.dry_run)
+		compile_and_clean(file, args)
 
 	if args.open_pdf:
 		for file in file_list:
@@ -357,3 +374,25 @@ def main(argv: Optional[List[str]] = None):
 			TexmgrConstants.check_error(process,
 				'when opening pdf file "{}"'.format(file)
 			)
+
+	if args.watch:
+		times : Dict[str, float] = {}
+		file_list = [TexmgrConstants.with_tex_ext(file) for file in file_list]
+		for file in file_list:
+			print(TexmgrConstants.color("{}: watching '{}'").format(
+				TexmgrConstants.NAME, file,
+			))
+			times[file] = get_mtime(file)
+
+		try:
+			while True:
+				sleep(TexmgrConstants.POLLING_TIME)
+				for file in file_list:
+					time = get_mtime(file)
+					if time > times[file]:
+						compile_and_clean(file, args)
+						times[file] = time
+		except KeyboardInterrupt:
+			print(TexmgrConstants.color("{}: stop watching files").format(
+				TexmgrConstants.NAME,
+			))
