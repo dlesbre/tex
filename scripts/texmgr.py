@@ -10,10 +10,11 @@ Useful contents:
 import argparse
 import subprocess
 
-from os import listdir, stat
+from os import getpgid, listdir, stat, killpg
 from os.path import exists, isdir, basename, join, dirname
 from time import sleep
 from typing import Dict, Optional, List, Tuple
+from signal import SIGTERM
 from sys import argv as sys_argv
 
 
@@ -22,7 +23,16 @@ from sys import argv as sys_argv
 # ============================
 
 Command = str
-CompletedProcess = subprocess.CompletedProcess
+class CompletedProcess():
+	"""Information about a completed process"""
+	returncode : int
+	stdout : str
+	stderr : str
+
+	def __init__(self, returncode:int, stdout:str, stderr:str):
+		self.returncode = returncode
+		self.stdout = stdout
+		self.stderr = stderr
 
 class Constants:
 	"""
@@ -143,9 +153,9 @@ def check_error(process:CompletedProcess, error_msg:str) -> bool:
 	if process.returncode != 0:
 		Constants.print_error(error_msg)
 		if process.stderr:
-			print(process.stderr.decode())
+			print(process.stderr)
 		if process.stdout:
-			print(process.stdout.decode())
+			print(process.stdout)
 		return True
 	return False
 
@@ -163,16 +173,21 @@ def run_command(command: str, dry_run = False) -> CompletedProcess:
 	if Constants.PRINT_COMMANDS:
 		print("{} {}".format(Constants.color(Constants.NAME + ":"), command))
 	if dry_run:
-		return CompletedProcess("", 0, stderr=bytes(), stdout=bytes())
+		return CompletedProcess(0, "", "")
+	process = subprocess.Popen(command,
+		stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True,
+		start_new_session=True,
+	)
 	try:
-		return subprocess.run(
-			command, shell=True,
-			stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-			timeout=Constants.COMMAND_TIMEOUT,
-		)
+		output, errors = process.communicate(timeout=Constants.COMMAND_TIMEOUT)
+		returncode = process.returncode
 	except subprocess.TimeoutExpired:
 		Constants.print_error("Command timeout")
-		return CompletedProcess("", 1, stderr=bytes(), stdout=bytes())
+		# kill process and all children
+		killpg(getpgid(process.pid), SIGTERM)
+		output, errors = process.communicate(timeout=Constants.COMMAND_TIMEOUT)
+		returncode = -1
+	return CompletedProcess(returncode, stdout=output.decode(), stderr=errors.decode())
 
 def format_and_run_command(command: str, file: str, dry_run = False) -> CompletedProcess:
 	"""Formats and runs a command and returns it's exit status"""
@@ -236,6 +251,11 @@ def error_tex_in_output(output: str) -> bool:
 	"""parses tex output looking for fatal errors"""
 	return ("Fatal error" in output) or ("no output PDF" in output)
 
+def print_clean(msg:str) -> None:
+	"""print msg if not empty (avoids empty lines)"""
+	if msg != "" and not msg.isspace():
+		print(msg.strip())
+
 def compile(file: str, dry_run = False) -> None:
 	"""compiles the given file"""
 	command = Constants.command_format(Constants.TEX_COMMAND, file)
@@ -246,12 +266,13 @@ def compile(file: str, dry_run = False) -> None:
 				ii+1, total, Constants.command_format(doc, file),
 			))
 		process = format_and_run_command(command, file, dry_run)
-		if error_tex_in_output(process.stdout.decode()):
+		if error_tex_in_output(process.stdout):
 			process.returncode = 1
 		if check_error(process, 'when compiling "{}"'.format(file)):
-			return
+			break
 	if not dry_run:
-		print(process.stdout.decode().strip())
+		print_clean(process.stdout)
+		print_clean(process.stderr)
 
 def compile_and_clean(file:str, args) -> None:
 	"""Calls compile with the correct argument and cleans if args specifies it"""
