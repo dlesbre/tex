@@ -161,7 +161,7 @@ def get_mtime(filepath: str) -> float:
 def run_command(command: str, dry_run = False) -> CompletedProcess:
 	"""Formats and runs a command and returns it's exit status"""
 	if Constants.PRINT_COMMANDS:
-		print("{}: {}".format(Constants.pretty_name(), command))
+		print("{} {}".format(Constants.color(Constants.NAME + ":"), command))
 	if dry_run:
 		return CompletedProcess("", 0, stderr=bytes(), stdout=bytes())
 	try:
