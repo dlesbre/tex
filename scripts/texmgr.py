@@ -357,7 +357,7 @@ def main(argv: Optional[List[str]] = None):
 	Constants.PRINT_COMMANDS = args.verbose or args.dry_run
 	Constants.PRINT_INFO = args.silent
 
-	args.clean = args.clean and not args.clean_last
+	args.no_clean = args.no_clean or args.clean_last
 	args.watch = args.watch or args.clean_last
 	file_list = args.file[0]
 
