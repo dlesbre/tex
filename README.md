@@ -45,7 +45,7 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 		  -p --open-pdf     compiles and opens PDF files in viewer
 
 		  -w --watch        watches the tex file and recompiles when it is changed
-			-s --silent       don't show info messages (keeps tex output and error messages)
+		  -l --clean-last   only clean build files when watcher is stopped
 
 		  -c --clean        doesn't compile, removes build files
 		                    Files removed match a .tex file in the list
@@ -53,6 +53,7 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 		                      aux, bak, bbl, blg, fdb_latexmk, fls, log, nav, out, snm, synctex.gz, synctez.gz, toc, vrb, vtc
 
 		  -v --verbose      print the commands called
+		  -s --silent       don't show info messages (keeps tex output and error messages)
 		  -d --dry-run      print the commands but don't run them
 		  --version         show version number
 		  -h --help         show this help

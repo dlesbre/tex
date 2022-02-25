@@ -268,18 +268,25 @@ parser = argparse.ArgumentParser(Constants.NAME, add_help=False,
 	usage="{} [--flags] [file list]\n  see --help for details.".format(Constants.NAME)
 )
 parser.add_argument("file", nargs="*", action="append")
+
+parser.add_argument("--no-clean", "-n", action="store_true")
+
 parser.add_argument("--init", "-i", action="store_true")
 parser.add_argument("--init-beamer", "-b", action="store_true")
 parser.add_argument("--open-tex", "-t", action="store_true")
 parser.add_argument("--open-pdf", "-p", action="store_true")
-parser.add_argument("--no-clean", "-n", action="store_true")
+
+parser.add_argument("--watch", "-w", action="store_true")
+parser.add_argument("--clean-last", "-l", action="store_true")
+
 parser.add_argument("--clean", "-c", action="store_true")
+
 parser.add_argument("--verbose", "-v", action="store_true")
 parser.add_argument("--silent", "-s", action="store_false")
 parser.add_argument("--dry-run", "-d", action="store_true")
 parser.add_argument("--version", action="store_true")
 parser.add_argument("--help", "-h", action="store_true")
-parser.add_argument("--watch", "-w", action="store_true")
+
 
 def get_help() -> str:
 	"""Returns the help string"""
@@ -306,6 +313,7 @@ def get_help() -> str:
 	  {s}-p --open-pdf{e}     compiles and opens PDF files in viewer
 
 	  {s}-w --watch{e}        watches the tex file and recompiles when it is changed
+	  {s}-l --clean-last{e}   only clean build files when watcher is stopped
 
 	  {s}-c --clean{e}        doesn't compile, removes build files
 	  {s}{e}                  Files removed match a .tex file in the list
@@ -349,6 +357,8 @@ def main(argv: Optional[List[str]] = None):
 	Constants.PRINT_COMMANDS = args.verbose or args.dry_run
 	Constants.PRINT_INFO = args.silent
 
+	args.clean = args.clean and not args.clean_last
+	args.watch = args.watch or args.clean_last
 	file_list = args.file[0]
 
 	## initizations
@@ -399,5 +409,8 @@ def main(argv: Optional[List[str]] = None):
 					if time > times[file]:
 						compile_and_clean(file, args)
 						times[file] = time
-		except KeyboardInterrupt:
+		except:
 			Constants.print_info("stop watching files")
+			if args.clean_last and not args.clean:
+				for file in file_list:
+					clean(file, args.dry_run)
