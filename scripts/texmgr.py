@@ -67,6 +67,7 @@ class TexmgrConstants:
 	COLOR_ERROR = "\033[31m" # red text
 	COLOR_END = "\033[38;22m" # Reset
 
+	COMMAND_TIMEOUT = 10.0 # in seconds
 	POLLING_TIME = 1.0 # in seconds
 
 	@classmethod
@@ -111,9 +112,8 @@ class TexmgrConstants:
 		)
 
 	@classmethod
-	def check_error(cls, process:CompletedProcess, error_msg:str) -> None:
-		"""Check process return code
-		If non-zero, display's an error message and process stderr/stdout before exiting"""
+	def print_error(cls, error_msg:str) -> None:
+		"""Prints the error message (with color is cls.USE_COLOR)"""
 		color_start = ""
 		color_error = ""
 		color_end = ""
@@ -121,15 +121,23 @@ class TexmgrConstants:
 			color_start = cls.COLOR_START
 			color_error = cls.COLOR_ERROR
 			color_end = cls.COLOR_END
-		if process.returncode != 0:
-			print("{}{}:{} ERROR:{} {}".format(
-				color_start, cls.NAME, color_error, color_end, error_msg
-			))
-			if process.stderr:
-				print(process.stderr.decode())
-			if process.stdout:
-				print(process.stdout.decode())
-			exit(process.returncode)
+		print("{}{}:{} ERROR:{} {}".format(
+			color_start, cls.NAME, color_error, color_end, error_msg
+		))
+
+
+def check_error(process:CompletedProcess, error_msg:str) -> bool:
+	"""Check process return code
+	If non-zero, display's an error message and process stderr/stdout
+	returns False if all is fine, True otherwise"""
+	if process.returncode != 0:
+		TexmgrConstants.print_error(error_msg)
+		if process.stderr:
+			print(process.stderr.decode())
+		if process.stdout:
+			print(process.stdout.decode())
+		return True
+	return False
 
 # ============================
 # Functions
@@ -146,7 +154,15 @@ def run_command(command: str, verbose = False, dry_run = False) -> CompletedProc
 		print(command)
 	if dry_run:
 		return CompletedProcess("", 0, stderr=bytes(), stdout=bytes())
-	return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	try:
+		return subprocess.run(
+			command, shell=True,
+			stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+			timeout=TexmgrConstants.COMMAND_TIMEOUT,
+		)
+	except subprocess.TimeoutExpired:
+		TexmgrConstants.print_error("Command timeout")
+		return CompletedProcess("", 1, stderr=bytes(), stdout=bytes())
 
 def format_and_run_command(
 		command: str, file: str, verbose = False, dry_run = False
@@ -163,16 +179,13 @@ def clean(file: str, verbose = False, dry_run = False) -> None:
 		file, '" "{}.'.format(file).join(TexmgrConstants.CLEAN_EXTENSIONS)
 	)
 	process = run_command(command, verbose, dry_run)
-	TexmgrConstants.check_error(process,
-		'when cleaning build files for "{}"'.format(file)
-	)
+	if check_error(process, 'when cleaning build files for "{}"'.format(file)):
+		return
 	command = 'rm -rf "{}"'.format(
 		'" "'.join(TexmgrConstants.CLEAN_FOLDERS)
 	)
 	process = format_and_run_command(command, file, verbose, dry_run)
-	TexmgrConstants.check_error(process,
-		'when cleaning build files for "{}"'.format(file)
-	)
+	check_error(process, 'when cleaning build files for "{}"'.format(file))
 
 
 def make_file_name(file: str, template: str) -> str:
@@ -195,9 +208,8 @@ def init(file: str, template: str, verbose = False, dry_run = False) -> None:
 			exit(0)
 	command = 'cp "{}" "{}"'.format(template, file)
 	process = run_command(command, verbose, dry_run)
-	TexmgrConstants.check_error(process,
-		'when initializing file "{}"'.format(file)
-	)
+	if check_error(process, 'when initializing file "{}"'.format(file)):
+		exit(1)
 
 def init_wrapper(
 		file_list: List[str], template: str, open_tex: bool,
@@ -213,9 +225,8 @@ def init_wrapper(
 			process = format_and_run_command(
 				TexmgrConstants.OPEN_EDITOR_COMMAND, filename, verbose, dry_run
 			)
-			TexmgrConstants.check_error(process,
-				'when opening editor for "{}"'.format(filename)
-			)
+			if check_error(process, 'when opening editor for "{}"'.format(filename)):
+				exit(1)
 	exit(0)
 
 def error_tex_in_output(output: str) -> bool:
@@ -235,7 +246,8 @@ def compile(file: str, verbose = False, dry_run = False) -> None:
 		process = format_and_run_command(command, file, verbose, dry_run)
 		if error_tex_in_output(process.stdout.decode()):
 			process.returncode = 1
-		TexmgrConstants.check_error(process, 'when compiling "{}"'.format(file))
+		if check_error(process, 'when compiling "{}"'.format(file)):
+			return
 	if not dry_run:
 		print(process.stdout.decode().strip())
 
@@ -357,9 +369,7 @@ def main(argv: Optional[List[str]] = None):
 				TexmgrConstants.OPEN_EDITOR_COMMAND, file,
 				args.verbose, args.dry_run
 			)
-			TexmgrConstants.check_error(process,
-				'when opening editor for "{}"'.format(file)
-			)
+			check_error(process, 'when opening editor for "{}"'.format(file))
 		exit(0)
 
 	for file in file_list:
@@ -371,9 +381,7 @@ def main(argv: Optional[List[str]] = None):
 				TexmgrConstants.OPEN_PDF_COMMAND, file,
 				args.verbose, args.dry_run
 			)
-			TexmgrConstants.check_error(process,
-				'when opening pdf file "{}"'.format(file)
-			)
+			check_error(process, 'when opening pdf file "{}"'.format(file))
 
 	if args.watch:
 		times : Dict[str, float] = {}
