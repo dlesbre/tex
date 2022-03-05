@@ -12,8 +12,9 @@ import subprocess
 
 from os import getpgid, listdir, stat, killpg
 from os.path import exists, isdir, basename, join, dirname
+from re import findall
 from time import sleep
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List, Tuple, Set
 from signal import SIGTERM
 from sys import argv as sys_argv
 
@@ -280,6 +281,42 @@ def compile_and_clean(file:str, args) -> None:
 	if not args.no_clean:
 		clean(file, args.dry_run)
 
+def find_dependencies(filepath:str, seen:Set[str] = set()) -> Set[str]:
+	"""Finds dependencies of a main LaTeX file
+	looking for \input{some other file}"""
+	try:
+		with open(filepath, "r") as file:
+			contents = file.read()
+	except IOError as err:
+		Constants.print_error(f"When searching for dependencies: could not read '{filepath}' : {err}")
+		contents = ""
+	# Remove comments (fails on escaped % but unlikely)
+	contents = "\n".join(line.split("%")[0] for line in contents.split('\n'))
+	patterns = findall(r"\\input{([^\\\{\}]*)}", contents)
+	tex_files = [Constants.with_tex_ext(pat) for pat in patterns]
+	seen.add(filepath)
+	for tex in tex_files:
+		seen = find_dependencies(tex, seen)
+	return seen
+
+class FileWatcher:
+	times : Dict[str, float] = dict()
+	files : List[str] = []
+
+	@classmethod
+	def update(cls) -> List[str]:
+		"""Get times on all files, returns list of outdated filed"""
+		new_times : Dict[str, float] = dict()
+		to_update = set()
+		for file in cls.files:
+			dependencies = find_dependencies(file)
+			for tex in dependencies:
+				time = new_times[tex] if tex in new_times else get_mtime(tex)
+				if tex in cls.times and time > cls.times[tex]:
+					to_update.add(file)
+		cls.times = new_times
+		return list(sorted(to_update))
+
 # ============================
 # Argument parser and main
 # ============================
@@ -299,6 +336,7 @@ parser.add_argument("--open-pdf", "-p", action="store_true")
 
 parser.add_argument("--watch", "-w", action="store_true")
 parser.add_argument("--clean-last", "-l", action="store_true")
+parser.add_argument("--find-deps", "-f", action="store_true")
 
 parser.add_argument("--clean", "-c", action="store_true")
 
@@ -335,6 +373,7 @@ def get_help() -> str:
 
 	  {s}-w --watch{e}        watches the tex file and recompiles when it is changed
 	  {s}-l --clean-last{e}   only clean build files when watcher is stopped
+	  {s}-f --find-deps{e}    print dependencies (\input{{...}}) of a LaTeX file
 
 	  {s}-c --clean{e}        doesn't compile, removes build files
 	  {s}{e}                  Files removed match a .tex file in the list
@@ -407,6 +446,14 @@ def main(argv: Optional[List[str]] = None):
 			check_error(process, 'when opening editor for "{}"'.format(file))
 		exit(0)
 
+	if args.find_deps:
+		for file in file_list:
+			tex = Constants.with_tex_ext(file)
+			Constants.print_info(f"Dependencies for {file}:")
+			dependencies = find_dependencies(tex)
+			print("\n".join(sorted(dependencies)))
+		exit(0)
+
 	for file in file_list:
 		compile_and_clean(file, args)
 
@@ -416,20 +463,15 @@ def main(argv: Optional[List[str]] = None):
 			check_error(process, 'when opening pdf file "{}"'.format(file))
 
 	if args.watch:
-		times : Dict[str, float] = {}
-		file_list = [Constants.with_tex_ext(file) for file in file_list]
-		for file in file_list:
-			Constants.print_info('watching "{}"'.format(file))
-			times[file] = get_mtime(file)
-
+		FileWatcher.files = [Constants.with_tex_ext(file) for file in file_list]
+		for file in FileWatcher.files:
+			Constants.print_info('watching "{}" and dependencies'.format(file))
+		FileWatcher.update()
 		try:
 			while True:
 				sleep(Constants.POLLING_TIME)
-				for file in file_list:
-					time = get_mtime(file)
-					if time > times[file]:
-						compile_and_clean(file, args)
-						times[file] = time
+				for file in FileWatcher.update():
+					compile_and_clean(file, args)
 		except:
 			Constants.print_info("stop watching files")
 			if args.clean_last and not args.clean:

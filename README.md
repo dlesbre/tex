@@ -46,6 +46,7 @@ To install the script, add an `alias texmgr='path/to/texmgr'` to your `~/.bashrc
 
 		  -w --watch        watches the tex file and recompiles when it is changed
 		  -l --clean-last   only clean build files when watcher is stopped
+		  -f --find-deps    print dependencies (\input{...}) of a LaTeX file
 
 		  -c --clean        doesn't compile, removes build files
 		                    Files removed match a .tex file in the list
