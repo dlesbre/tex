@@ -312,7 +312,8 @@ class FileWatcher:
 			dependencies = find_dependencies(file)
 			for tex in dependencies:
 				time = new_times[tex] if tex in new_times else get_mtime(tex)
-				if tex in cls.times and time > cls.times[tex]:
+				new_times[tex] = time
+				if tex not in cls.times or time > cls.times[tex]:
 					to_update.add(file)
 		cls.times = new_times
 		return list(sorted(to_update))
