@@ -40,6 +40,7 @@
 \definecolor{eyeblue_title_bg}{HTML}{4c4c7c}
 \colorlet{eyeblue_blocktitle_bg}{eyeblue_title_bg}
 \colorlet{eyeblue_blockbody_bg}{eyeblue_title_bg!120}
+\definecolor{eyeblue_highlight}{HTML}{EB811B}
 
 % red
 \definecolor{eyered_bg}{HTML}{3c2626}
@@ -87,6 +88,7 @@
 		\setbeamercolor*{background canvas}{bg=eyeblue_bg}
 		\setbeamercolor*{block title}{bg=eyeblue_blocktitle_bg}
 		\setbeamercolor*{block body}{bg=eyeblue_blockbody_bg}
+		\setbeamercolor*{alerted text}{fg=eyeblue_highlight}
 	}{}
 
 	\iftoggle{red}{
@@ -118,7 +120,7 @@
 	}{}
 
 	\iftoggle{yellow}{
-		\setbeamercolor{normal text}{fg=black, bg=white}
+		\setbeamercolor*{normal text}{fg=black, bg=white}
 		\setbeamercolor*{frametitle}{bg=eyeyellow_title_bg, fg=black}
 		\setbeamercolor*{background canvas}{bg=eyeyellow_bg}
 		\setbeamercolor*{block title}{bg=eyeyellow_blocktitle_bg}
@@ -127,7 +129,7 @@
 	}{}
 
 	\iftoggle{cyan}{
-		\setbeamercolor{normal text}{fg=black, bg=white}
+		\setbeamercolor*{normal text}{fg=black, bg=white}
 		\setbeamercolor*{frametitle}{bg=eyecyan_title_bg, fg=black}
 		\setbeamercolor*{background canvas}{bg=eyecyan_bg}
 		\setbeamercolor*{block title}{bg=eyecyan_blocktitle_bg}
@@ -136,6 +138,9 @@
 	}{}
 
 }{}
+
+\newcommand{\coloralert}{\usebeamercolor[fg]{alerted text}}
+\newcommand{\colorexample}{\usebeamercolor[fg]{example text}}
 
 \endinput
 %%
