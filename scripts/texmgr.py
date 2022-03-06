@@ -311,10 +311,13 @@ class FileWatcher:
 		for file in cls.files:
 			dependencies = find_dependencies(file)
 			for tex in dependencies:
-				time = new_times[tex] if tex in new_times else get_mtime(tex)
-				new_times[tex] = time
-				if tex not in cls.times or time > cls.times[tex]:
-					to_update.add(file)
+				try:
+					time = new_times[tex] if tex in new_times else get_mtime(tex)
+					new_times[tex] = time
+					if tex not in cls.times or time > cls.times[tex]:
+						to_update.add(file)
+				except IOError as err:
+					Constants.print_error(f"When getting modified times for {file} : {err}")
 		cls.times = new_times
 		return list(sorted(to_update))
 
