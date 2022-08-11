@@ -137,19 +137,21 @@
 
 
 \iftoggle{english}{
-	\newtheorem{proposition}{Proposition}
+	\newtheorem{proposition}{Proposition}[section]
 	\newtheorem{theoreme}[proposition]{Theorem}
-	\newtheorem{probleme}{Problem}
-	\newtheorem{methode}{Method}
-	\newtheorem{algo}{Algorithm}
-	\newtheorem{defini}{Definition}
+	\newtheorem{probleme}{Problem}[section]
+	\newtheorem{methode}{Method}[section]
+	\newtheorem{algo}{Algorithm}[section]
+	\newtheorem{defini}{Definition}[section]
+	\newtheorem{example}{Example}[section]
 }{
-	\newtheorem{proposition}{Proposition}
+	\newtheorem{proposition}{Proposition}[section]
 	\newtheorem{theoreme}[proposition]{Théorème}
-	\newtheorem{probleme}{Problème}
-	\newtheorem{methode}{Méthode}
-	\newtheorem{algo}{Algorithme}
-	\newtheorem{defini}{Définition}
+	\newtheorem{probleme}{Problème}[section]
+	\newtheorem{methode}{Méthode}[section]
+	\newtheorem{algo}{Algorithme}[section]
+	\newtheorem{defini}{Définition}[section]
+	\newtheorem{example}{Exemple}[section]
 }
 
 \endinput
