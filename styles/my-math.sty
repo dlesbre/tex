@@ -13,11 +13,10 @@
 %% Author: Dorian Lesbre
 %%
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
-\ProvidesPackage{my-math} [2021/03/28 v1.0.0 a lot of math commands]
-
-\RequirePackage{my-preamble}
+\ProvidesPackage{my-math} [2023/02/24 v1.1.0 a lot of math commands]
 
 \RequirePackage{etoolbox}
+\RequirePackage{my-preamble}
 
 \newtoggle{english}
 
@@ -97,8 +96,8 @@
 \newcommand{\bigdiff}[2]{\cfrac{\mathrm{d} #1}{\mathrm{d} #2}}
 
 \newcommand{\f}[4]{\begin{array}{ccl}
- #1 \!&\! \rightarrow \!&\! #2 \\
- #3 \!&\! \mapsto \!&\! #4 \end{array}}
+		#1 \! & \! \rightarrow \! & \! #2 \\
+		#3 \! & \! \mapsto \!     & \! #4\end{array}}
 \newcommand{\nCr}[2]{\left(\begin{array}{c} #1 \\ #2 \end{array} \right)}
 \newcommand{\liste}[3][,\,]{#2 #1 \ldots #1 #3}
 
