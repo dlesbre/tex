@@ -118,25 +118,26 @@
 % ==========================
 
 \newtheoremstyle{custom}
-	{} % espace au-dessus
-	{} % espace en-dessous
-	{\normalfont} % police
-	{} % indentation
-	{\bfseries}
-	{} %Ponctuation
-	{ } %après la tête
-	{\thmname{#1}\thmnumber{ #2} : \def\temp{#3}\ifx\temp\empty \else (\thmnote{#3})\fi\newline} %head-spec
+{} % espace au-dessus
+{} % espace en-dessous
+{\normalfont} % police
+{} % indentation
+{\bfseries}
+{} %Ponctuation
+{ } %après la tête
+{\thmname{#1}\thmnumber{ #2} : \def\temp{#3}\ifx\temp\empty \else (\thmnote{#3})\fi\newline} %head-spec
 \theoremstyle{custom}
 
 \makeatletter
-	\renewenvironment{proof}[1][\proofname]
-		{\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\emph{#1 :}]\mbox{}}
-		{\popQED\endtrivlist\@endpefalse}
+\renewenvironment{proof}[1][\proofname]
+{\par\pushQED{\qed}\normalfont\topsep6\p@\@plus6\p@\relax\trivlist\item[\hskip\labelsep\emph{#1 :}]\mbox{}}
+{\popQED\endtrivlist\@endpefalse}
 \makeatother
 
 
 \iftoggle{english}{
 	\newtheorem{proposition}{Proposition}[section]
+	\newtheorem{lemma}{Lemma}[section]
 	\newtheorem{theoreme}[proposition]{Theorem}
 	\newtheorem{probleme}{Problem}[section]
 	\newtheorem{methode}{Method}[section]
@@ -145,6 +146,7 @@
 	\newtheorem{exampl}{Example}[section]
 }{
 	\newtheorem{proposition}{Proposition}[section]
+	\newtheorem{lemma}{Lemme}[section]
 	\newtheorem{theoreme}[proposition]{Théorème}
 	\newtheorem{probleme}{Problème}[section]
 	\newtheorem{methode}{Méthode}[section]
