@@ -134,20 +134,19 @@
 {\popQED\endtrivlist\@endpefalse}
 \makeatother
 
-
 \iftoggle{english}{
-	\newtheorem{proposition}{Proposition}[section]
-	\newtheorem{lemma}[proposition]{Lemma}
-	\newtheorem{theoreme}[proposition]{Theorem}
+	\newtheorem{mylemma}{Lemma}[section]
+	\newtheorem{proposition}[mylemma]{Proposition}
+	\newtheorem{theoreme}[mylemma]{Theorem}
 	\newtheorem{probleme}{Problem}[section]
 	\newtheorem{methode}{Method}[section]
 	\newtheorem{algo}{Algorithm}[section]
 	\newtheorem{defini}{Definition}[section]
 	\newtheorem{exampl}{Example}[section]
 }{
-	\newtheorem{proposition}{Proposition}[section]
-	\newtheorem{lemma}[proposition]{Lemme}
-	\newtheorem{theoreme}[proposition]{Théorème}
+	\newtheorem{mylemma}{Lemme}[section]
+	\newtheorem{proposition}[mylemma]{Proposition}
+	\newtheorem{theoreme}[mylemma]{Théorème}
 	\newtheorem{probleme}{Problème}[section]
 	\newtheorem{methode}{Méthode}[section]
 	\newtheorem{algo}{Algorithme}[section]
