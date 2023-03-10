@@ -531,7 +531,7 @@ def main(argv: Optional[List[str]] = None):
                 sleep(Constants.POLLING_TIME)
                 for file in FileWatcher.update():
                     compile_and_clean(file, args)
-        except Exception:
+        except KeyboardInterrupt:
             Constants.print_info("stop watching files")
             if args.clean_last and not args.clean:
                 for file in file_list:
