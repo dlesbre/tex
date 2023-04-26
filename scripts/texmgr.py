@@ -77,7 +77,7 @@ class Constants:
 
     # Command called when running tex
     TEX_COMMAND: Command = (
-        'texfot --tee=/dev/null --quiet --ignore="This is pdfTeX, Version" '
+        'TEXINPUTS=./packages//:$TEXINPUTS texfot --tee=/dev/null --quiet --ignore="This is pdfTeX, Version" '
         "pdflatex -file-line-error -interaction=nonstopmode --enable-write18 "
         '"{tex_file}" | grep --color=always -E "Warning|Missing|Undefined|Emergency|Fatal|$"'
     )
