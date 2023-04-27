@@ -32,16 +32,22 @@
 \RequirePackage{pgf, tikz}
 \RequirePackage{svg}
 \RequirePackage{multicol}
+\RequirePackage{multirow}
+\RequirePackage{enumitem}
+\RequirePackage{adjustbox}
+\RequirePackage{scalerel}
+\RequirePackage{abstract}
 
 % Code coloring
 \RequirePackage{minted}
-
 
 \@ifclassloaded{beamer}{
 	\RequirePackage{hyperref}
 }{
 	\RequirePackage[hidelinks]{hyperref}
-	\hypersetup{linktoc = all, colorlinks = false}
+
+	% Only color cite and ref
+	\hypersetup{linktoc = all, colorlinks = true, allcolors = color_fg, citecolor = color_emph, linkcolor = color_emph}
 }
 
 \ProcessOptions\relax
