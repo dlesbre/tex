@@ -68,10 +68,10 @@
 
 \@ifclassloaded{beamer}{
 	% Beamer margins
-	\newlength\beamerleftmargin
+	\newlength\beamerleftmargin{}
 	\setlength\beamerleftmargin{\Gm@lmargin}
 
-	\newlength\beamerrightmargin
+	\newlength\beamerrightmargin{}
 	\setlength\beamerrightmargin{\Gm@rmargin}
 }{}
 
@@ -144,7 +144,7 @@
 \setminted{autogobble=true}
 
 % Commands to have links to definitions
-\newcommand\newlink[2]{{\protect\hyperlink{#1}{\normalcolor #2}}}
+\newcommand\newlink[2]{{\protect\hyperlink{#1}{\normalcolor{#2}}}}
 \makeatletter
 \newcommand\newtarget[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
 \makeatother
