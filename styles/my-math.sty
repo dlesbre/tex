@@ -156,6 +156,66 @@
 	\newtheorem{exampl}{Exemple}[section]
 }
 
+\newcommand{\spac}{\nobreak\hskip 0.2em plus 0.1em} % a space
+
+\makeatletter
+\newcommand{\newsymb}[3][]{
+	\ifstrempty{#1}{%
+		% symbol without def link
+		\expandafter\newcommand\csname#2\endcsname{#3}%
+	}{%
+		% symbol with def link
+		\expandafter\newcommand\csname#2\endcsname{\newlink{def:#1}{#3}}%
+	}%
+}%
+% \newsymb[tgt] {\foo} {bar} -> new macro \foo that prints bar (optionally linking to def:tgt)
+
+\newcommand{\newfunone}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[1]{\csname#2symb\endcsname \left(##1\right)}%
+}%
+% \newfunone{cmd}{link}{symbol} -> new function taking one argument
+% defines two macros:
+% - \cmdsymb -> the function name
+% - \cmd {arg} -> function call
+
+\newcommand{\newfuntwo}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname \left(##1,\spac##2\right)}%
+}%
+% \newfuntwo{cmd}{link}{symbol} -> new function taking two arguments
+% defines two macros:
+% - \cmdsymb -> the function name
+% - \cmd x y -> function call
+
+\newcommand{\newfunthree}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[3]{\csname#2symb\endcsname \left(##1,\spac##2,\spac##3\right)}%
+}%
+% \newfuntwo{cmd}{link}{symbol} -> new function taking three arguments
+% defines two macros:
+% - \cmdsymb -> the function name
+% - \cmd x y z -> function call
+
+\newcommand{\newfunfour}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname \left(##1,\spac##2,\spac##3,\spac##4\right)}%
+}%
+% \newfuntwo{cmd}{link}{symbol} -> new function taking four arguments
+% defines two macros:
+% - \cmdsymb -> the function name
+% - \cmd x y z t -> function call
+
+\newcommand{\newinfix}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{##1 \mathop{\csname#2symb\endcsname} ##2}%
+}%
+% \newinfix{cmd}{link}{symbol} -> new infix operator
+% defines two macros:
+% - \cmdsymb -> the function name
+% - \cmd x y -> function call
+\makeatother
+
 \endinput
 
 %% End of file my-math.sty
