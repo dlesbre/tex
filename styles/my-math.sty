@@ -156,6 +156,10 @@
 	\newtheorem{exampl}{Exemple}[section]
 }
 
+% ==========================
+% Macro definitions
+% ==========================
+
 \newcommand{\spac}{\nobreak\hskip 0.2em plus 0.1em} % a space
 
 \makeatletter
@@ -214,6 +218,31 @@
 % defines two macros:
 % - \cmdsymb -> the function name
 % - \cmd x y -> function call
+
+\newcommand{\newlamone}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[1]{\csname#2symb\endcsname\spac##1}%
+}%
+% \newlamone{cmd}{link}{symbol} -> same as newfunone but uses OCaml style syntax for function calls
+
+\newcommand{\newlamtwo}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname\spac##1\spac##2}%
+}%
+% \newlamtwo{cmd}{link}{symbol} -> same as newfuntwo but uses OCaml style syntax for function calls
+
+\newcommand{\newlamthree}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[3]{\csname#2symb\endcsname\spac##1\spac##2\spac##3}%
+}%
+% \newlamthree{cmd}{link}{symbol} -> same as newfunthree but uses OCaml style syntax for function calls
+
+\newcommand{\newlamfour}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname\spac##1\spac##2\spac##3\spac##4}%
+}%
+% \newlamfour{cmd}{link}{symbol} -> same as newfunfour but uses OCaml style syntax for function calls
+
 \makeatother
 
 \endinput
