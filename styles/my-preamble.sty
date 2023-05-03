@@ -84,19 +84,16 @@
 \definecolor{classic_page_color}{HTML}{FFFFFF} % white
 \definecolor{classic_emph_color}{HTML}{0000FF} % blue
 \definecolor{classic_emph2_color}{HTML}{FF0000} % red
+\definecolor{classic_emph3_color}{HTML}{FFFF00} % green
+\definecolor{classic_emph4_color}{HTML}{EE8C00} % Dark Orange
 
 % Inverted white on black
 \definecolor{inverted_text_color}{HTML}{FFFFFF} % white
 \definecolor{inverted_page_color}{HTML}{000000} % black
 \definecolor{inverted_emph_color}{HTML}{FFFF00} % yellow
-\definecolor{inverted_emph2_color}{HTML}{00FFFF} % cyan
-
-% Defaults
-\colorlet{color_fg}{classic_text_color}
-\colorlet{color_bg}{classic_page_color}
-\colorlet{color_emph}{classic_emph_color}
-\colorlet{color_emph2}{classic_emph2_color}
-\usemintedstyle{colorful}
+\definecolor{inverted_emph2_color}{HTML}{FF00FF} % magenta
+\definecolor{inverted_emph3_color}{HTML}{00FFFF} % cyan
+\definecolor{inverted_emph4_color}{HTML}{FFB000} % Light orange
 
 \newcommand{\invertcolors}{
 	\usemintedstyle{github-dark}
@@ -104,6 +101,8 @@
 	\colorlet{color_bg}{inverted_page_color}
 	\colorlet{color_emph}{inverted_emph_color}
 	\colorlet{color_emph2}{inverted_emph2_color}
+	\colorlet{color_emph3}{inverted_emph3_color}
+	\colorlet{color_emph4}{inverted_emph4_color}
 	\color{color_fg}
 	\pagecolor{color_bg}
 }
@@ -114,10 +113,13 @@
 	\colorlet{color_bg}{classic_page_color}
 	\colorlet{color_emph}{classic_emph_color}
 	\colorlet{color_emph2}{classic_emph2_color}
+	\colorlet{color_emph3}{classic_emph3_color}
+	\colorlet{color_emph4}{classic_emph4_color}
 	\color{color_fg}
 	\pagecolor{color_bg}
 }
 
+\resetcolors{}
 
 % ==========================
 % Size commands
@@ -144,7 +146,7 @@
 \setminted{autogobble=true}
 
 % Commands to have links to definitions
-\newcommand\newlink[2]{{\protect\hyperlink{#1}{\normalcolor{#2}}}}
+\newcommand\newlink[2]{{\protect{\hypersetup{linkcolor=}\hyperlink{#1}{#2}}}}
 \makeatletter
 \newcommand\newtarget[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
 \makeatother
