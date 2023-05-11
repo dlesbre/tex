@@ -212,12 +212,18 @@
 
 \newcommand{\newinfix}[3][]{%
 	\newsymb[#1]{#2symb}{#3}%
-	\expandafter\newcommand\csname#2\endcsname[2]{##1 \mathop{\csname#2symb\endcsname} ##2}%
+	\expandafter\newcommand\csname#2\endcsname[2]{##1 \mathbin{\csname#2symb\endcsname} ##2}%
 }%
 % \newinfix{cmd}{link}{symbol} -> new infix operator
 % defines two macros:
 % - \cmdsymb -> the function name
 % - \cmd x y -> function call
+
+\newcommand{\newinfixrel}[3][]{%
+	\newsymb[#1]{#2symb}{#3}%
+	\expandafter\newcommand\csname#2\endcsname[2]{##1 \mathrel{\csname#2symb\endcsname} ##2}%
+}%
+% Same as new infix but with bigger space (for relations, not binary operators)
 
 \newcommand{\newlamone}[3][]{%
 	\newsymb[#1]{#2symb}{#3}%
