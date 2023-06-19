@@ -38,7 +38,7 @@
 \RequirePackage{enumitem}
 \RequirePackage{adjustbox}
 \RequirePackage{scalerel}
-\RequirePackage{abstract}
+
 
 % Code coloring
 \RequirePackage{minted}
@@ -46,6 +46,7 @@
 \@ifclassloaded{beamer}{
 	\RequirePackage{hyperref}
 }{
+	\RequirePackage{abstract}
 	\RequirePackage[hidelinks]{hyperref}
 
 	% Only color cite and ref
