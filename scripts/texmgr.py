@@ -92,6 +92,9 @@ class Constants:
         (TEX_COMMAND, 'compiling "{tex_file}"'),
         (TEX_COMMAND, 'compiling "{tex_file}"'),
     ]
+    UPDATE_SEQUENCE: List[Tuple[Command, str]] = [
+        (TEX_COMMAND, 'compiling "{tex_file}"'),
+    ]
 
     USE_COLOR = True  # use ansi in output
     COLOR_START = "\033[33;1m"  # bold orange text
@@ -293,11 +296,11 @@ def print_clean(msg: str) -> None:
         print(msg.strip())
 
 
-def compile(file: str, dry_run=False) -> None:
+def compile(file: str, dry_run=False, sequence=Constants.COMPILE_SEQUENCE) -> None:
     """compiles the given file"""
     command = Constants.command_format(Constants.TEX_COMMAND, file)
-    total = len(Constants.COMPILE_SEQUENCE)
-    for ii, (command, doc) in enumerate(Constants.COMPILE_SEQUENCE):
+    total = len(sequence)
+    for ii, (command, doc) in enumerate(sequence):
         if not dry_run:
             Constants.print_info(
                 ("step {}/{} - {}").format(
@@ -316,9 +319,9 @@ def compile(file: str, dry_run=False) -> None:
         print_clean(process.stderr)
 
 
-def compile_and_clean(file: str, args) -> None:
+def compile_and_clean(file: str, args, sequence=Constants.COMPILE_SEQUENCE) -> None:
     """Calls compile with the correct argument and cleans if args specifies it"""
-    compile(file, args.dry_run)
+    compile(file, args.dry_run, sequence)
     if not args.no_clean:
         clean(file, args.dry_run)
 
@@ -524,13 +527,13 @@ def main(argv: Optional[List[str]] = None):
     if args.watch:
         FileWatcher.files = [Constants.with_tex_ext(file) for file in file_list]
         for file in FileWatcher.files:
-            Constants.print_info('watching "{}" and dependencies'.format(file))
+            Constants.print_info('watching "{}" and dependencies.'.format(file))
         FileWatcher.update()
         try:
             while True:
                 sleep(Constants.POLLING_TIME)
                 for file in FileWatcher.update():
-                    compile_and_clean(file, args)
+                    compile(file, args.dry_run, sequence=Constants.UPDATE_SEQUENCE)
         except KeyboardInterrupt:
             Constants.print_info("stop watching files")
             if args.clean_last and not args.clean:
