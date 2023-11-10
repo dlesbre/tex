@@ -293,7 +293,23 @@ def error_tex_in_output(output: str) -> bool:
 def print_clean(msg: str) -> None:
     """print msg if not empty (avoids empty lines)"""
     if msg != "" and not msg.isspace():
-        print(msg.strip())
+        msg = msg.strip()
+    hbox = 0
+    vbox = 0
+    img = 0
+    to_print = []
+    for line in msg.split("\n"):
+        if line.startswith("Overfull \\hbox") or line.startswith("Underfull \\hbox"):
+            hbox += 1
+        elif line.startswith("Overfull \\vbox") or line.startswith("Underfull \\vbox"):
+            vbox += 1
+        elif line.startswith("Class acmart") and "A possible image without description on input line" in line:
+            img += 1
+        else:
+            to_print.append(line)
+    if hbox or vbox:
+        to_print.append(f"{hbox} under/overfull hboxes; {vbox} under/overfull vboxes; {img} images without description")
+    print("\n".join(to_print))
 
 
 def compile(file: str, dry_run=False, sequence=Constants.COMPILE_SEQUENCE) -> None:
