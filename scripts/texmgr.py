@@ -12,7 +12,7 @@ import subprocess
 
 from os import getpgid, listdir, stat, killpg
 from os.path import exists, isdir, basename, join, dirname
-from re import findall
+from re import findall, match
 from time import sleep
 from typing import Dict, Optional, List, Tuple, Set
 from signal import SIGTERM
@@ -294,30 +294,70 @@ def error_tex_in_output(output: str) -> bool:
     return ("Fatal error" in output) or ("no output PDF" in output)
 
 
-def print_clean(msg: str) -> None:
-    """print msg if not empty (avoids empty lines)"""
+TRIM_OUTPUT_LEN = 24  # Only keep N first lines of output
+
+
+previous = 0
+
+
+def print_clean(msg: str) -> list[str]:
+    """print msg if not empty (avoids empty lines)
+    Also group common error messages for shorter output"""
     if msg != "" and not msg.isspace():
         msg = msg.strip()
     hbox = 0
     vbox = 0
     img = 0
+    undefined_refs = set()
+    undefined_citations = set()
     to_print = []
     for line in msg.split("\n"):
+        ma_ref = match(r"LaTeX Warning: (Hyper r|R)eference '(.*)' on", line)
+        ma_cit = match(r"Package natbib Warning: Citation '(.*)' on", line)
         if line.startswith("Overfull \\hbox") or line.startswith("Underfull \\hbox"):
             hbox += 1
         elif line.startswith("Overfull \\vbox") or line.startswith("Underfull \\vbox"):
             vbox += 1
-        elif line.startswith("Class acmart") and "A possible image without description on input line" in line:
+        elif (
+            line.startswith("Class acmart")
+            and "A possible image without description on input line" in line
+        ):
             img += 1
-        else:
+        elif ma_ref:
+            undefined_refs.add(ma_ref.group(2))
+        elif ma_cit:
+            undefined_citations.add(ma_cit.group(1))
+        elif not line.isspace() and not line == "":
             to_print.append(line)
-    if hbox or vbox:
-        to_print.append(f"{hbox} under/overfull hboxes; {vbox} under/overfull vboxes; {img} images without description")
-    print("\n".join(to_print))
+
+    if len(to_print) >= TRIM_OUTPUT_LEN:
+        trimmed = len(to_print) - TRIM_OUTPUT_LEN
+        to_print = to_print[:TRIM_OUTPUT_LEN]
+        to_print.append(
+            f"\033[34;1m======== Trimmed {trimmed} extra lines from output ========\033[0m"
+        )
+    extras = []
+    if hbox and vbox:
+        extras.append(f"- {hbox} under/overfull hboxes; {vbox} under/overfull vboxes;")
+    elif hbox:
+        extras.append(f"- {hbox} under/overfull hboxes;")
+    elif vbox:
+        extras.append(f"- {vbox} under/overfull vboxes;")
+    if img:
+        extras.append(f"- {img} images without description (acmart warning)")
+    if undefined_refs:
+        extras.append(f"- {len(undefined_refs)} undefined references:")
+    if undefined_citations:
+        extras.append(f"- {len(undefined_citations)} undefined citations:")
+    if extras:
+        to_print.append("\033[34;1mGrouped error messages:\033[0m")
+        to_print.extend(extras)
+    return to_print
 
 
 def compile(file: str, dry_run=False, sequence=Constants.COMPILE_SEQUENCE) -> None:
     """compiles the given file"""
+    global previous
     command = Constants.command_format(Constants.TEX_COMMAND, file)
     total = len(sequence)
     for ii, (command, doc) in enumerate(sequence):
@@ -335,8 +375,13 @@ def compile(file: str, dry_run=False, sequence=Constants.COMPILE_SEQUENCE) -> No
         if check_error(process, 'when compiling "{}"'.format(file)):
             break
     if not dry_run:
-        print_clean(process.stdout)
-        print_clean(process.stderr)
+        out = print_clean(process.stdout)
+        err = print_clean(process.stderr)
+        if err:
+            out.append("\033[34;1m======== STDERR ========\033[0m")
+            out.extend(err)
+        print("\n".join(out))
+        previous = len(out)
 
 
 def compile_and_clean(file: str, args, sequence=Constants.COMPILE_SEQUENCE) -> None:
@@ -462,9 +507,7 @@ def get_help() -> str:
           {s}-d --dry-run{e}      print the commands but don't run them
           {s}--version{e}         show version number
           {s}-h --help{e}         show this help
-        """.replace(
-        "\n        ", "\n"
-    ).format(
+        """.replace("\n        ", "\n").format(
         name=Constants.pretty_name(),
         version=Constants.VERSION,
         s=color_s,
@@ -534,6 +577,11 @@ def main(argv: Optional[List[str]] = None):
             print("\n".join(sorted(dependencies)))
         exit(0)
 
+    if args.watch:
+        FileWatcher.files = [Constants.with_tex_ext(file) for file in file_list]
+        for file in FileWatcher.files:
+            Constants.print_info('watching "{}" and dependencies.'.format(file))
+
     for file in file_list:
         compile_and_clean(file, args)
 
@@ -545,14 +593,13 @@ def main(argv: Optional[List[str]] = None):
             check_error(process, 'when opening pdf file "{}"'.format(file))
 
     if args.watch:
-        FileWatcher.files = [Constants.with_tex_ext(file) for file in file_list]
-        for file in FileWatcher.files:
-            Constants.print_info('watching "{}" and dependencies.'.format(file))
         FileWatcher.update()
         try:
             while True:
                 sleep(Constants.POLLING_TIME)
                 for file in FileWatcher.update():
+                    if previous:
+                        print("\033[A\033[K" * previous, end="")
                     compile(file, args.dry_run, sequence=Constants.UPDATE_SEQUENCE)
         except KeyboardInterrupt:
             Constants.print_info("stop watching files")
