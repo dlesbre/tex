@@ -7,6 +7,7 @@ Useful contents:
  - Constants            class containing many useful constants
                         like the commands used and the tex compile sequence
 """
+
 import argparse
 import subprocess
 
@@ -300,6 +301,28 @@ TRIM_OUTPUT_LEN = 24  # Only keep N first lines of output
 previous = 0
 
 
+def print_short_set(st: set[str]) -> list[str]:
+    """Format set to display elements line by line, wrapping at 100 chars
+    Trims if takes more than 3 lines"""
+    lines: list[str] = []
+    group: list[str] = []
+    prefix = "  "
+    sep = ", "
+    for i, x in enumerate(st):
+        cur_line = prefix + sep.join(group)
+        if len(cur_line) + len(sep) + len(x) < 100:
+            group.append(x)
+        else:
+            lines.append(cur_line)
+            if len(lines) == 3:
+                lines.append(prefix + f"And {len(st) - i} more")
+                break
+            group = [x]
+    if group:
+        lines.append(prefix + sep.join(group))
+    return lines
+
+
 def print_clean(msg: str) -> list[str]:
     """print msg if not empty (avoids empty lines)
     Also group common error messages for shorter output"""
@@ -312,8 +335,10 @@ def print_clean(msg: str) -> list[str]:
     undefined_citations = set()
     to_print = []
     for line in msg.split("\n"):
-        ma_ref = match(r"LaTeX Warning: (Hyper r|R)eference '(.*)' on", line)
-        ma_cit = match(r"Package natbib Warning: Citation '(.*)' on", line)
+        ma_ref = match(r"LaTeX (.*)Warning(.*): (Hyper r|R)eference '(.*)' on", line)
+        ma_cit = match(r"Package natbib (.*)Warning(.*): Citation `(.*)' on", line)
+        # if line.strip().startswith("Package natbib"):
+        #     print("FOO: ", repr(line))
         if line.startswith("Overfull \\hbox") or line.startswith("Underfull \\hbox"):
             hbox += 1
         elif line.startswith("Overfull \\vbox") or line.startswith("Underfull \\vbox"):
@@ -323,10 +348,12 @@ def print_clean(msg: str) -> list[str]:
             and "A possible image without description on input line" in line
         ):
             img += 1
+        elif line.startswith("Output written on"):
+            to_print.append("\033[34;1m" + line + "\033[0m")
         elif ma_ref:
-            undefined_refs.add(ma_ref.group(2))
+            undefined_refs.add(ma_ref.group(4))
         elif ma_cit:
-            undefined_citations.add(ma_cit.group(1))
+            undefined_citations.add(ma_cit.group(3))
         elif not line.isspace() and not line == "":
             to_print.append(line)
 
@@ -347,8 +374,10 @@ def print_clean(msg: str) -> list[str]:
         extras.append(f"- {img} images without description (acmart warning)")
     if undefined_refs:
         extras.append(f"- {len(undefined_refs)} undefined references:")
+        extras.extend(print_short_set(undefined_refs))
     if undefined_citations:
         extras.append(f"- {len(undefined_citations)} undefined citations:")
+        extras.extend(print_short_set(undefined_citations))
     if extras:
         to_print.append("\033[34;1mGrouped error messages:\033[0m")
         to_print.extend(extras)
