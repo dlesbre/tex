@@ -11,6 +11,7 @@ Useful contents:
 import argparse
 import subprocess
 
+from datetime import datetime
 from os import getpgid, listdir, stat, killpg
 from os.path import exists, isdir, basename, join, dirname
 from re import findall, match
@@ -104,6 +105,7 @@ class Constants:
     USE_COLOR = True  # use ansi in output
     COLOR_START = "\033[33;1m"  # bold orange text
     COLOR_ERROR = "\033[31m"  # red text
+    COLOR_TIME = "\033[32m"
     COLOR_END = "\033[38;22m"  # Reset
 
     COMMAND_TIMEOUT = 10.0  # in seconds
@@ -154,6 +156,15 @@ class Constants:
         )
 
     @classmethod
+    def get_time(cls) -> str:
+        time = "[{}] ".format(
+            datetime.now().strftime("%H:%M"),
+        )
+        if cls.USE_COLOR:
+            time = cls.COLOR_TIME + time + cls.COLOR_END
+        return time
+
+    @classmethod
     def print_error(cls, error_msg: str) -> None:
         """Prints the error message (with color is cls.USE_COLOR)"""
         color_start = ""
@@ -164,15 +175,20 @@ class Constants:
             color_error = cls.COLOR_ERROR
             color_end = cls.COLOR_END
         print(
-            "{}{}:{} ERROR:{} {}".format(
-                color_start, cls.NAME, color_error, color_end, error_msg
+            cls.get_time()
+            + "{}{}:{} ERROR:{} {}".format(
+                color_start,
+                cls.NAME,
+                color_error,
+                color_end,
+                error_msg,
             )
         )
 
     @classmethod
     def print_info(cls, msg: str) -> None:
         if cls.PRINT_INFO:
-            print(cls.color("{}: {}".format(cls.NAME, msg)))
+            print(cls.get_time() + cls.color("{}: {}".format(cls.NAME, msg)))
 
 
 def check_error(process: CompletedProcess, error_msg: str) -> bool:
@@ -628,7 +644,7 @@ def main(argv: Optional[List[str]] = None):
                 sleep(Constants.POLLING_TIME)
                 for file in FileWatcher.update():
                     if previous:
-                        print("\033[A\033[K" * previous, end="")
+                        print("\033[A\033[K" * (previous + 1), end="")
                     compile(file, args.dry_run, sequence=Constants.UPDATE_SEQUENCE)
         except KeyboardInterrupt:
             Constants.print_info("stop watching files")
