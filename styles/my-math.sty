@@ -204,7 +204,7 @@
 
 \newcommand{\newfunfour}[3][]{%
 	\newsymb[#1]{#2symb}{#3}%
-	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname \left(##1,\spac##2,\spac##3,\spac##4\right)}%
+	\expandafter\newcommand\csname#2\endcsname[4]{\csname#2symb\endcsname \left(##1,\spac##2,\spac##3,\spac##4\right)}%
 }%
 % \newfuntwo{cmd}{link}{symbol} -> new function taking four arguments
 % defines two macros:
@@ -246,7 +246,7 @@
 
 \newcommand{\newlamfour}[3][]{%
 	\newsymb[#1]{#2symb}{#3}%
-	\expandafter\newcommand\csname#2\endcsname[2]{\csname#2symb\endcsname\spac##1\spac##2\spac##3\spac##4}%
+	\expandafter\newcommand\csname#2\endcsname[4]{\csname#2symb\endcsname\spac##1\spac##2\spac##3\spac##4}%
 }%
 % \newlamfour{cmd}{link}{symbol} -> same as newfunfour but uses OCaml style syntax for function calls
 
