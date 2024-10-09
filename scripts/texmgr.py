@@ -108,7 +108,7 @@ class Constants:
     COLOR_TIME = "\033[32m"
     COLOR_END = "\033[38;22m"  # Reset
 
-    COMMAND_TIMEOUT = 10.0  # in seconds
+    COMMAND_TIMEOUT = 30.0  # in seconds
     POLLING_TIME = 1.0  # in seconds
 
     PRINT_INFO = True  # unless silent is set
