@@ -76,6 +76,11 @@
 
 	\newlength\beamerrightmargin{}
 	\setlength\beamerrightmargin{\Gm@rmargin}
+
+	% Tikz macro to add/remove style from nodes on certain slides
+	\tikzset{onslide/.code args={<#1>#2}{%
+				\only<#1>{\pgfkeysalso{#2}}
+			}}
 }{}
 
 % ==========================
