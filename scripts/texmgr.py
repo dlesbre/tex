@@ -351,10 +351,15 @@ def print_clean(msg: str) -> list[str]:
     undefined_citations = set()
     to_print = []
     for line in msg.split("\n"):
-        ma_ref = match(r"LaTeX (.*)Warning(.*): (Hyper r|R)eference '(.*)' on", line)
-        ma_cit = match(r"Package natbib (.*)Warning(.*): Citation `(.*)' on", line)
+        ma_ref = match(
+            r"LaTeX (.*)Warning(.*): (Hyper r|R)eference [`'](.*)[`'] on", line
+        )
+        ma_cit = match(
+            r"Package natbib (.*)Warning(.*): Citation [`'](.*)[`'] on", line
+        )
         # if line.strip().startswith("Package natbib"):
         #     print("FOO: ", repr(line))
+        # print(repr(line), ma_ref is None, ma_cit is None)
         if line.startswith("Overfull \\hbox") or line.startswith("Underfull \\hbox"):
             hbox += 1
         elif line.startswith("Overfull \\vbox") or line.startswith("Underfull \\vbox"):
@@ -370,6 +375,11 @@ def print_clean(msg: str) -> list[str]:
             undefined_refs.add(ma_ref.group(4))
         elif ma_cit:
             undefined_citations.add(ma_cit.group(3))
+        elif (
+            line.startswith("Class acmart")
+            and "\\vspace should only be used to provide space above/below" in line
+        ):
+            pass
         elif not line.isspace() and not line == "":
             to_print.append(line)
 
