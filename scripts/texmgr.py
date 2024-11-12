@@ -375,9 +375,14 @@ def print_clean(msg: str) -> list[str]:
             undefined_refs.add(ma_ref.group(4))
         elif ma_cit:
             undefined_citations.add(ma_cit.group(3))
+        elif line.startswith("Class acmart") and (
+            "\\vspace should only be used to provide space above/below" in line
+            or "Some images may lack descriptions." in line
+        ):
+            pass
         elif (
-            line.startswith("Class acmart")
-            and "\\vspace should only be used to provide space above/below" in line
+            "There were undefined references." in line
+            or "There were undefined citations." in line
         ):
             pass
         elif not line.isspace() and not line == "":
