@@ -89,6 +89,18 @@
 
 	% Add a tikz node at current pos, useful to have overlays point to this place
 	\newcommand{\tikzpt}[1]{\tikz[overlay, remember picture, baseline=-3pt] \coordinate (#1);}
+
+	% Split a slit in two columns
+	\newcommand\twosplit[3][t]{%
+		\begin{columns}[#1]
+			\begin{column}{0.475\linewidth}
+				#2
+			\end{column}\hfill
+			\begin{column}{0.475\linewidth}
+				#3
+			\end{column}
+		\end{columns}
+	}
 }{}
 
 % ==========================
