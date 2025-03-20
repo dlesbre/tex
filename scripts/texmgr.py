@@ -24,6 +24,7 @@ from signal import SIGTERM
 # Constants
 # ============================
 
+
 Command = str
 
 
@@ -464,8 +465,8 @@ def find_dependencies(filepath: str, seen: Set[str] = set()) -> Set[str]:
         contents = ""
     # Remove comments (fails on escaped % but unlikely)
     contents = "\n".join(line.split("%")[0] for line in contents.split("\n"))
-    patterns = findall(r"\\input{([^\\\{\}]*)}", contents)
-    tex_files = [Constants.with_tex_ext(pat) for pat in patterns]
+    patterns = findall(r"\\(input|include){([^\\\{\}]*)}", contents)
+    tex_files = [Constants.with_tex_ext(pat[1]) for pat in patterns]
     seen.add(filepath)
     for tex in tex_files:
         seen = find_dependencies(tex, seen)
